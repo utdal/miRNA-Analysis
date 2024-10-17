@@ -3,7 +3,7 @@
 //
 
 // Import Subworkflows
-include { FASTQC_CUTADAPT_FASTQC as PREPROCESSING} from './subworkflows/preprocessing'
+include { FASTQC_CUTADAPT_FASTQC as PREPROCESSING} from './subworkflows/preprocessing.nf'
 
 // Import Modules
 
@@ -14,17 +14,21 @@ workflow {
     ch_versions = Channel.empty()
 
     // Get inputs
-
-    config_directory = params.config_directory
-    reads = params.reads
-
+    //config_directory = params.config_directory
+    
+    // TODO Take input as a csv file or something???
+    def meta = [
+        id: 'trial',
+        single_end: true
+    ]
+    values = tuple(meta, file(params.reads))
 
     // TODO Check inputs
 
 
     // preprocess fastqc cutadapt fastqc
     // TODO reads needs to be a channel. 
-    PREPROCESSING (reads)
+    PREPROCESSING (values)
     ch_versions = ch_versions.mix(PREPROCESSING.out.versions.first())
 
     // miRDeep2
