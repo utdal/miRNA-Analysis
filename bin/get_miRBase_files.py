@@ -38,7 +38,7 @@ def download_miRBase():
     else:
         print(f'Error when retrieving mature.fa\nError: {response.status_code}')
 
-
+# TODO figure out how to filter out non-GATCU chracters. 
 def filter_miRNA_refs():
     # filter for mature human and replace non ACGTU letter with N
     
