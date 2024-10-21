@@ -2,3 +2,4 @@
 .nextflow.*
 test/
 work/
+bin/*.fa
