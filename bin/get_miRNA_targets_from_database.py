@@ -1,30 +1,92 @@
 import pandas as pd
 import requests
+import argparse
 
-class GetmiRNATargets:
-    def __init__(self, miRNA_list):
-        self.miRNA_list = miRNA_list
+# Function to get the data about the miRNA from ENCORI
+# https://rnasysu.com/encori/api/miRNATarget/?assembly=hg38&geneType=mRNA&miRNA={miRNA}&clipExpNum=1&degraExpNum=0&pancancerNum=0&programNum=1&program=None&target=all&cellType=all'
 
-    # Function to get the data about the miRNA from ENCORI
-    # https://rnasysu.com/encori/api/miRNATarget/?assembly=hg38&geneType=mRNA&miRNA={miRNA}&clipExpNum=1&degraExpNum=0&pancancerNum=0&programNum=1&program=None&target=all&cellType=all'
+# TargetScan has predicted miRNA targets
+# ENCORI has validated miRNA targets
 
-    def retrive_miRNA_csvs(self,miRNA):
-        url = f'https://rnasysu.com/encori/api/miRNATarget/?assembly=hg38&geneType=mRNA&miRNA={miRNA}&clipExpNum=1&degraExpNum=0&pancancerNum=0&programNum=1&program=None&target=all&cellType=all'
-        response = requests.get(url)
-        if response.status_code == 200:
-            with open(f'{miRNA}_targets.csv', 'wb') as f:
-                f.write(response.content)
-        else:
-            print(f'Error: {response.status_code}')
+def retrieve_miRNA_csvs(miRNA, clipExpNum, degraExpNum, programNum, program):
+    url = f'https://rnasysu.com/encori/api/miRNATarget/?assembly=hg38&geneType=mRNA&miRNA={miRNA}&clipExpNum={clipExpNum}&degraExpNum={degraExpNum}&pancancerNum=0&programNum={programNum}&program={program}&target=all&cellType=all'
+    response = requests.get(url)
+    if response.status_code == 200:
+        with open(f'{miRNA}_ENCORI_targets.csv', 'wb') as f:
+            f.write(response.content)
+    else:
+        print(f'Error: {response.status_code}')
+    
+    # Read the csv into a dataframe and return
+    miRNA_targets = pd.read_csv(f'{miRNA}_ENCORI_targets.csv', sep='\t', header=3)
 
-    def create_df_of_all_data(self):
+    return miRNA_targets   
 
-        miRNA_targets = pd.DataFrame()
 
-        # Get the csvs from the ENCORI database
-        # TODO consider adding options for restrictions on info pulled.
-        for index,row in self.miRNA_list.iterrows():
-            self.retrive_miRNA_csvs(row['miRNA'])
+def main():
+    arg_parser = argparse.ArgumentParser(
+        description="",
+        formatter_class=argparse.RawTextHelpFormatter,
+    )
 
-            # write the data from the csv into miRNA_targets DataFrame with all miRNA and their targets
+    arg_parser.add_argument(
+        "--miRNA_list",
+        type=str,
+        required=True,
+        help="The list of differentially expressed miRNAs.",
+    )
 
+    arg_parser.add_argument(
+        "--clipExpNum",
+        type=int,
+        required=True,
+        help="Minimum number of supporting CLIP-seq experiments required for miRNA-mRNA interaction.",
+    )
+
+    arg_parser.add_argument(
+        "--degraExpNum",
+        type=int,
+        required=True,
+        help="Minimum number of supporting degradome-seq experiments.",
+    )
+
+    arg_parser.add_argument(
+        "--programNum",
+        type=int,
+        required=True,
+        help="Minimum number of target-predicting programs. <= .7",
+    )
+
+    arg_parser.add_argument(
+        "--program",
+        type=str,
+        required=True,
+        help="Target-predicting programs (PITA, RNA22, miRmap, DIANA-microT, miRanda, PicTar, and TargetScan).",
+    )
+
+    args_parsed = arg_parser.parse_args()
+    miRNA_list = args_parsed.miRNA_list
+    clipExpNum = args_parsed.clipExpNum
+    degraExpNum = args_parsed.degraExpNum
+    programNum = args_parsed.programNum
+    program = args_parsed.program
+
+    # Make a dataframe for the all targets of the differentially expressed miRNAs
+    
+    all_validated_miRNA_targets = pd.DataFrame()
+
+    # Get the miRNA targets df from the ENCORI database
+    for index,row in miRNA_list.iterrows():
+        miRNA_targets = retrieve_miRNA_csvs(row['miRNA'], clipExpNum, degraExpNum, programNum, program)
+
+        # TODO Try to reduce complexity
+        temp = all_validated_miRNA_targets
+        all_validated_miRNA_targets = pd.concat([temp,miRNA_targets])
+
+    # Write all the information to a csv file
+    all_validated_miRNA_targets.to_csv("all_ENCORI_miRNA_DE_targets.csv", sep='\t')
+
+
+
+if __name__ == "__main__":
+    main()
