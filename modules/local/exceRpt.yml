@@ -1,0 +1,11 @@
+name: run_exceRpt
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  - bioconda::star
+  - bioconda::java-jdk
+  - bioconda::fastx_toolkit
+  - bioconda::bowtie2
+  - conda install bioconda::samtools
+  - conda-forge::r-base

@@ -5,6 +5,8 @@
 // Import Subworkflows
 include { FASTQC_CUTADAPT_FASTQC as PREPROCESSING} from './subworkflows/local/preprocessing.nf'
 //include { FASTQ_FIND_MIRNA_MIRDEEP2 }              from './subworkflows/nf-core/fastq_find_mirna_mirdeep2/main'
+include { EXCERPT } from './modules/local/exceRpt.nf'
+include { HTSEQ_COUNT } from './modules/nf-core/htseq/main.nf'
 
 // Import Modules
 
@@ -40,7 +42,9 @@ workflow {
     //)
 
     // exceRpt
-
+    EXCERPT (
+        PREPROCESSING.out.trimmed_reads
+    )
 
 
     // HTSeq-count
