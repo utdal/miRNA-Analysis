@@ -1,11 +1,13 @@
-name: run_exceRpt
+name: mirna
 channels:
   - conda-forge
   - bioconda
 dependencies:
-  - bioconda::star
+  - bioconda::star=2.6.0c
   - bioconda::java-jdk
   - bioconda::fastx_toolkit
   - bioconda::bowtie2
-  - conda install bioconda::samtools
+  - bioconda::samtools
   - conda-forge::r-base
+  - nextflow
+  - singularity
