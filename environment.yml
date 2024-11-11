@@ -9,5 +9,9 @@ dependencies:
   - bioconda::bowtie2
   - bioconda::samtools
   - conda-forge::r-base
+  - conda-forge::biopython
+  - conda-forge::requests
+  - conda-forge::pandas
+  - bioconda::htseq
   - nextflow
   - singularity
