@@ -4,9 +4,10 @@
 
 // Import Subworkflows
 include { FASTQC_CUTADAPT_FASTQC as PREPROCESSING} from './subworkflows/local/preprocessing.nf'
-//include { FASTQ_FIND_MIRNA_MIRDEEP2 }              from './subworkflows/nf-core/fastq_find_mirna_mirdeep2/main'
+include { MIRBASE_DOWNLOAD } from './modules/local/miRBase_download.nf'
+//include { FASTQ_FIND_MIRNA_MIRDEEP2 } from './subworkflows/nf-core/fastq_find_mirna_mirdeep2/main'
 include { EXCERPT } from './modules/local/exceRpt.nf'
-include { HTSEQ_COUNT } from './modules/nf-core/htseq/main.nf'
+include { HTSEQ_COUNT } from './modules/local/htseq-count.nf'
 
 // Import Modules
 
@@ -30,7 +31,10 @@ workflow {
     PREPROCESSING (reads)
     ch_versions = ch_versions.mix(PREPROCESSING.out.versions.first())
 
-    
+    // Download miRBase files
+    MIRBASE_DOWNLOAD ()
+    ch_versions = ch_versions.mix(MIRBASE_DOWNLOAD.out.versions.first())
+
     //
     // miRDeep2
     //
@@ -45,10 +49,15 @@ workflow {
     EXCERPT (
         PREPROCESSING.out.trimmed_reads
     )
+    ch_versions = ch_versions.mix(EXCERPT.out.versions.first())
 
+    // Somehow make a channel/map of all of the excerpt outputs??????
 
     // HTSeq-count
-
+    HTSEQ_COUNT (
+        EXCERPT.out.exceRpt_aligned_bam,
+        MIRBASE_DOWNLOAD.out.miRNA_gff
+    )
 
 
 

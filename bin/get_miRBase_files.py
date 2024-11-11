@@ -1,10 +1,13 @@
 #!/usr/bin/env python3
 
-print("We are here.")
-
 from Bio import SeqIO
-import re
 import requests
+import logging
+from datetime import datetime
+
+logging.basicConfig(filename='get_miRBase_files.log', format='%(asctime)s %(message)s', filemode='w')
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
 
 # miRDeep2 requires that the miRNA ref files do not have letters other than AGTUCN in the sequence.
 # for best human specific results, filter the for files:
@@ -23,20 +26,28 @@ import requests
 def download_miRBase():
     hairpin_url = 'https://www.mirbase.org/download/hairpin.fa'
     mature_url = 'https://www.mirbase.org/download/mature.fa'
+    hsa_gff = 'https://www.mirbase.org/download/hsa.gff3'
 
     response = requests.get(hairpin_url)
     if response.status_code == 200:
         with open(f'hairpin.fa', 'wb') as f:
             f.write(response.content)
     else:
-        print(f'Error when retrieving hairpin.fa\nError: {response.status_code}')
+        logger.info(f'Error when retrieving hairpin.fa\nError: {response.status_code}')
         
     response = requests.get(mature_url)
     if response.status_code == 200:
         with open(f'mature.fa', 'wb') as f:
             f.write(response.content)
     else:
-        print(f'Error when retrieving mature.fa\nError: {response.status_code}')
+        logger.info(f'Error when retrieving mature.fa\nError: {response.status_code}')
+
+    response = requests.get(hsa_gff)
+    if response.status_code == 200:
+        with open(f'hsa.gff3', 'wb') as f:
+            f.write(response.content)
+    else:
+        logger.info(f'Error when retrieving hsa.gff3\nError: {response.status_code}')
 
 # TODO figure out how to filter out non-GATCU chracters. 
 def filter_miRNA_refs():
@@ -64,14 +75,22 @@ def filter_miRNA_refs():
                 SeqIO.write(record, hsa_file, "fasta")
 
 def main():
-    print("Generate the miRNA reference files, separating human (hsa) from other organisms.")
-    print("Files will be generated in the directory you are running this script.")
+    logger.info("Generate the miRNA reference files, separating human (hsa) from other organisms.")
+    logger.info("Files will be generated in the directory you are running this script.")
+
+    now = datetime.now()
+    formatted = now.strftime("%Y-%m-%d %H:%M:%S")
+    logger.info(f"Files downloaded on: {formatted}")
 
     download_miRBase()
 
+    logger.info("Finished downloading miRBase files.")
+
     filter_miRNA_refs()
 
-    print("Completed")
+    logger.info("Finished filtering miRNA references.")
+
+    logger.info("Completed obtaining files.")
 
 if __name__ == "__main__":
     main()
