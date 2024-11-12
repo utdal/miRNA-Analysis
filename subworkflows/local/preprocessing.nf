@@ -8,15 +8,13 @@ include { CUTADAPT as CUTADAPT_ADAPTER } from './../../modules/nf-core/cutadapt/
 include { CUTADAPT as CUTADAPT_EXTRA } from './../../modules/nf-core/cutadapt/main'
 include { UNIVEC_FILTERING } from './../../modules/local/univec_filtering'
 
-workflow FASTQC_CUTADAPT_FASTQC{
-
-    ch_versions = Channel.empty()
-
+workflow FASTQC_CUTADAPT_FASTQC {
     take:
     ch_reads            // channel: [ val(meta), path(reads)]
 
     main:
-    
+    ch_versions = Channel.empty()
+
     // Raw quality
     FASTQC_RAW ( ch_reads )
     ch_versions = ch_versions.mix(FASTQC_RAW.out.versions.first())
