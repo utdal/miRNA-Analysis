@@ -8,6 +8,7 @@ process HTSEQ_COUNT{
 
     output:
     tuple val(meta), path("*.tsv"), emit: raw_counts
+    path "versions.yml",            emit: versions
 
     script:
     def args = task.ext.args ?: ''
