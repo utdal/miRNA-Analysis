@@ -27,7 +27,7 @@ process CONCAT_RAW_COUNTS {
     main_df.to_csv('all_raw_counts.tsv', sep='\\t', header=True, index=False)
 
     with open("versions.yml", "w") as file:
-        file.write(f"${task.process}:\n")
-        file.write(f"\tpython: {platform.python_version()}")
+        file.write(f"${task.process}:")
+        file.write(f"\\tpython: {platform.python_version()}")
     """
 }
