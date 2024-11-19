@@ -2,6 +2,11 @@ process HTSEQ_COUNT{
     tag "$meta.id"
     label 'process_medium'
 
+    // Container obtained from htseq-count module from nf-core
+    container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
+        'https://depot.galaxyproject.org/singularity/htseq:2.0.3--py310ha14a713_0':
+        'biocontainers/htseq:2.0.3--py310ha14a713_0' }"
+
     input:
     tuple val(meta), path(bam)
     path(gff3)
