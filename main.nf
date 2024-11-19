@@ -4,31 +4,31 @@
 
 // Import Subworkflows
 include { FASTQC_CUTADAPT_FASTQC as PREPROCESSING} from './subworkflows/local/preprocessing.nf'
-include { MIRBASE_DOWNLOAD } from './modules/local/miRBase_download.nf'
 //include { FASTQ_FIND_MIRNA_MIRDEEP2 } from './subworkflows/nf-core/fastq_find_mirna_mirdeep2/main'
-include { EXCERPT } from './modules/local/exceRpt.nf'
-include { HTSEQ_COUNT } from './modules/local/htseq-count.nf'
 
 // Import Modules
+include { MIRBASE_DOWNLOAD } from './modules/local/miRBase_download.nf'
+include { EXCERPT } from './modules/local/exceRpt.nf'
+include { HTSEQ_COUNT } from './modules/local/htseq-count.nf'
+include { CONCAT_RAW_COUNTS } from './modules/local/concat_raw_counts.nf'
 
 
 workflow {
 
     ch_versions = Channel.empty()
 
-    // TODO Take input as a csv file or something???
-    def meta = [
-        id: 'trial',
-        single_end: true
-    ]
-    reads = tuple(meta, file(params.reads))
-
-    // TODO Check inputs
-
+    // Get input reads
+    ch_samplesheet = Channel
+        .fromPath(params.samplesheet)
+        .splitCsv(header: true)
+    
+    ch_samples = ch_samplesheet.map { row -> 
+        def meta = [ id: row.sample_id, single_end: true ] 
+        tuple(meta, file(row.fastq)) 
+    }
 
     // preprocess: fastqc cutadapt fastqc
-    // TODO reads needs to be a channel. 
-    PREPROCESSING (reads)
+    PREPROCESSING (ch_samples)
     ch_versions = ch_versions.mix(PREPROCESSING.out.versions.first())
 
     // Download miRBase files
@@ -51,15 +51,18 @@ workflow {
     )
     ch_versions = ch_versions.mix(EXCERPT.out.versions.first())
 
-    // Somehow make a channel/map of all of the excerpt outputs??????
-
     // HTSeq-count
     HTSEQ_COUNT (
         EXCERPT.out.exceRpt_aligned_bam,
         MIRBASE_DOWNLOAD.out.miRNA_gff
     )
-
-
+    ch_versions = ch_versions.mix(HTSEQ_COUNT.out.versions.first())
+    
+    // Concatenate raw counts
+    CONCAT_RAW_COUNTS (
+        HTSEQ_COUNT.out.raw_counts
+    )
+    ch_versions = ch_versions.mix(CONCAT_RAW_COUNTS.out.versions.first())
 
     // DESeq2???
 
