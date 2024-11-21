@@ -8,7 +8,7 @@ import argparse
 # TargetScan has predicted miRNA targets
 # ENCORI has validated miRNA targets
 
-def retrieve_miRNA_csvs(miRNA, clipExpNum, degraExpNum, programNum, program):
+def retrieve_miRNA_csvs(miRNA, regulated, clipExpNum, degraExpNum, programNum, program):
     url = f'https://rnasysu.com/encori/api/miRNATarget/?assembly=hg38&geneType=mRNA&miRNA={miRNA}&clipExpNum={clipExpNum}&degraExpNum={degraExpNum}&pancancerNum=0&programNum={programNum}&program={program}&target=all&cellType=all'
     response = requests.get(url)
     if response.status_code == 200:
@@ -19,6 +19,7 @@ def retrieve_miRNA_csvs(miRNA, clipExpNum, degraExpNum, programNum, program):
     
     # Read the csv into a dataframe and return
     miRNA_targets = pd.read_csv(f'{miRNA}_ENCORI_targets.csv', sep='\t', header=3)
+    miRNA_targets['regulation'] = regulated
 
     return miRNA_targets   
 
@@ -33,7 +34,7 @@ def main():
         "--miRNA_list",
         type=str,
         required=True,
-        help="The list of differentially expressed miRNAs.",
+        help="The file with list of differentially expressed miRNAs.",
     )
 
     arg_parser.add_argument(
@@ -72,12 +73,14 @@ def main():
     program = args_parsed.program
 
     # Make a dataframe for the all targets of the differentially expressed miRNAs
-    
     all_validated_miRNA_targets = pd.DataFrame()
+
+    # Header expected to follow the format: miRNA   <up or down regulated>regulated
+    miRNA_list = pd.read_csv(miRNA_list, sep='\t', header=0)
 
     # Get the miRNA targets df from the ENCORI database
     for index,row in miRNA_list.iterrows():
-        miRNA_targets = retrieve_miRNA_csvs(row['miRNA'], clipExpNum, degraExpNum, programNum, program)
+        miRNA_targets = retrieve_miRNA_csvs(row['miRNA'], row['regulated'], clipExpNum, degraExpNum, programNum, program)
 
         # TODO Try to reduce complexity
         temp = all_validated_miRNA_targets
