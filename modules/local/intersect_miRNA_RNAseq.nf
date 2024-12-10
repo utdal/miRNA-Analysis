@@ -1,13 +1,14 @@
-process INTERSECT_MIRNA_RNASEQ{
+process INTERSECT_MIRNA_RNASEQ {
+    tag "$meta2.condition"
     label 'process_low'
 
     input:
-    path(all_targets)
+    tuple val(meta2), path(all_targets)
     path(tissue_specific_genes)
 
     output:
-    path("*.tsv"),          emit: intersect_targets
-    path "versions.yml",    emit: versions
+    tuple val(meta2), path("*.tsv"),       emit: intersect_targets
+    path "versions.yml",                   emit: versions
 
     script:
     """

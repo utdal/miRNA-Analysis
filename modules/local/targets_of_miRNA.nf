@@ -1,11 +1,12 @@
 process TARGETS_OF_MIRNA {
+    tag "$meta2.condition"
     label 'process_medium'    
 
     input:
-    path(miRNA_DE)
+    tuple val(meta2), path(miRNA_DE)
 
     output:
-    path("*.tsv"),          emit: all_targets
+    tuple val(meta2), path("*.tsv"),          emit: all_targets
     path "versions.yml",    emit: versions
 
     script:

@@ -6,7 +6,7 @@ workflow MIRNA_ANALYSIS {
     // TODO make optional
     MIRNA_EXPRESSION(
         params.samplesheet,
-        params.meta_data
+        params.meta_data_files
     )  
 
     // TODO make optional

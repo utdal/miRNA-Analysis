@@ -1,4 +1,5 @@
 process DESEQ2 {
+    tag "$meta2.condition"
     label 'process_medium'
 
     // Container obtained from htseq-count module from nf-core
@@ -8,16 +9,18 @@ process DESEQ2 {
 
     input:
     path(all_raw_counts)
-    path(metadata)
+    tuple val(meta2), path(metadata)
 
     output:
-    path("*.tsv"), emit: intersect_targets
+    tuple val(meta2), path("*.tsv"), emit: miRNA_DE
 
     script:
     """
-    #!/bin/Rscript
+    # TODO Call the script with DESeq2 commands
+    #!/usr/bin/env R
     library(DESeq2)
-    # TODO add the rest of the commands
+
+
 
     """
 
