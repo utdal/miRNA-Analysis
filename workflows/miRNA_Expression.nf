@@ -19,7 +19,7 @@ workflow MIRNA_EXPRESSION {
 
     take:
     samplesheet
-    meta_data
+    meta_data_files
 
     main:
 
@@ -77,13 +77,23 @@ workflow MIRNA_EXPRESSION {
     )
     ch_versions = ch_versions.mix(CONCAT_RAW_COUNTS.out.versions.first())
 
-    // DESeq2???
+    // Parse all of the meta datas
+    ch_meta_data_files = Channel
+        .fromPath(meta_data_files)
+        .splitCsv(header: true)
+    
+    ch_meta_data = ch_meta_data_files.map { row -> 
+        def meta2 = [ condition: row.condition ] 
+        tuple(meta2, file(row.csv)) 
+    }    
+
+    // DESeq2
     DESEQ2 (
         CONCAT_RAW_COUNTS.out.all_raw_counts,
-        meta_data
+        ch_meta_data
     )
 
     emit:
-    miRNA_DE = DESEQ2.out.miRNA_DE
+    miRNA_DE = DESEQ2.out.miRNA_DE  // channel: [ val(meta2), path("*.tsv") ]
     
 }
