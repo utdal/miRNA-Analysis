@@ -1,14 +1,17 @@
 include { MIRNA_EXPRESSION } from './workflows/miRNA_Expression'
 include { TARGET_ANALYSIS } from './workflows/target_analysis'
 
-workflow MIRNA_EXPRESSION_RUN {
-    MIRNA_EXPRESSION()  
-}
+workflow MIRNA_ANALYSIS {
 
-workflow TARGET_ANALYSIS_RUN {
-    TARGET_ANALYSIS()
-}
+    // TODO make optional
+    MIRNA_EXPRESSION(
+        params.samplesheet,
+        params.meta_data
+    )  
 
-workflow {
-    MIRNA_EXPRESSION_RUN()
+    // TODO make optional
+    TARGET_ANALYSIS(
+        MIRNA_EXPRESSION.out.miRNA_DE,
+        params.bulk_rna_counts
+    )
 }
