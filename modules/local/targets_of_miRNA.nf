@@ -1,13 +1,12 @@
-process GET_MIRNA_TARGETS {
-    label 'process_medium'
-
-    // TODO how to handle up vs. down regulated stuff
+process TARGETS_OF_MIRNA {
+    label 'process_medium'    
 
     input:
     path(miRNA_DE)
 
     output:
-    path(all_targets), emit: all_targets
+    path("*.tsv"),          emit: all_targets
+    path "versions.yml",    emit: versions
 
     script:
     """    
@@ -20,6 +19,4 @@ process GET_MIRNA_TARGETS {
         python: \$(python --version | sed 's/Python //g')
     END_VERSIONS
     """
-
-
 }

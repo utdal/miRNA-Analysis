@@ -3,9 +3,11 @@ process INTERSECT_MIRNA_RNASEQ{
 
     input:
     path(all_targets)
+    path(tissue_specific_genes)
 
     output:
-    path(intersect_targets), emit: intersect_targets
+    path("*.tsv"),          emit: intersect_targets
+    path "versions.yml",    emit: versions
 
     script:
     """
