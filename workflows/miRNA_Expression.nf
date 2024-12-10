@@ -12,15 +12,22 @@ include { EXCERPT } from './../modules/local/exceRpt.nf'
 include { EXCERPTMERGE } from './../modules/local/exceRptMerge.nf'
 include { HTSEQ_COUNT } from './../modules/local/htseq-count.nf'
 include { CONCAT_RAW_COUNTS } from './../modules/local/concat_raw_counts.nf'
+include { DESEQ2 } from './../modules/local/deseq2.nf'
 
 
 workflow MIRNA_EXPRESSION {
+
+    take:
+    samplesheet
+    meta_data
+
+    main:
 
     ch_versions = Channel.empty()
 
     // Get input reads
     ch_samplesheet = Channel
-        .fromPath(params.samplesheet)
+        .fromPath(samplesheet)
         .splitCsv(header: true)
     
     ch_samples = ch_samplesheet.map { row -> 
@@ -52,8 +59,10 @@ workflow MIRNA_EXPRESSION {
     )
     ch_versions = ch_versions.mix(EXCERPT.out.versions.first())
 
-    // Combine exceRpt results
-
+    // TODO Combine exceRpt results
+    //EXCERPTMERGE (
+        //EXCERPT.out.exceRpt_folder
+    //)
 
     // HTSeq-count
     HTSEQ_COUNT (
@@ -69,13 +78,12 @@ workflow MIRNA_EXPRESSION {
     ch_versions = ch_versions.mix(CONCAT_RAW_COUNTS.out.versions.first())
 
     // DESeq2???
+    DESEQ2 (
+        CONCAT_RAW_COUNTS.out.all_raw_counts,
+        meta_data
+    )
 
-
-
-    // TODO miRanda or TargetScan for miRDeep2 results
-
-
-
-    // Functional Analysis
+    emit:
+    miRNA_DE = DESEQ2.out.miRNA_DE
     
 }
