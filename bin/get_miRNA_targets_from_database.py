@@ -94,12 +94,8 @@ def main():
 
     logger.info(f"miRNA_list: {miRNA_list}")
 
-    # Make a dataframe for the all targets of the differentially expressed miRNAs
-    all_validated_miRNA_targets = pd.DataFrame()
-
     if deseq2_output == 'True':
-        # The miRNA_list file should be the output file from DESeq2
-        #   Therefore, the columns be 
+        # The columns are expected to follow the format:
         #   <miRNA>,baseMean,log2FoldChange,lfcSE,stat,pvalue,padj
 
         # Separate the miRNA_list file into 2 files: up and down regulated miRNAs
