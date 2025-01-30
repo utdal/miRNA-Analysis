@@ -1,6 +1,6 @@
-
-// Import Local Subworkflows
-include { TARGETS } from './../subworkflows/local/targets.nf'
+// Import Local Modules
+include { TARGETS_OF_MIRNA } from './../modules/local/targets_of_miRNA'
+include { INTERSECT_MIRNA_RNASEQ } from './../modules/local/intersect_miRNA_RNAseq'
 
 workflow TARGET_ANALYSIS {
 
@@ -9,14 +9,21 @@ workflow TARGET_ANALYSIS {
     miRNA_DE
 
     main:
-
     ch_versions = Channel.empty()
 
-    TARGETS (
-        miRNA_DE,
+    // Get all the targets of the differentially expressed miRNAs
+    TARGETS_OF_MIRNA( 
+        miRNA_DE 
+    )
+    ch_versions = ch_versions.mix(TARGETS_OF_MIRNA.out.versions.first())
+
+    // Filter all the targets for only those that appear in the Bulk RNA-seq 
+    //      (aka only the ones that are expressed)
+    INTERSECT_MIRNA_RNASEQ( 
+        TARGETS_OF_MIRNA.out.miRNA_targets,
         bulk_rna_counts
     )
-    ch_versions = ch_versions.mix(TARGETS.out.versions.first())
+    ch_versions = ch_versions.mix(INTERSECT_MIRNA_RNASEQ.out.versions.first())
 
 
     // TODO miRanda or TargetScan for miRDeep2 results
