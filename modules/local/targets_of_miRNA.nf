@@ -6,12 +6,10 @@ process TARGETS_OF_MIRNA {
     tuple val(meta2), path(miRNA_DE_file)
 
     output:
-    tuple val(meta2), path("*all_up_regulated_ENCORI_miRNA_targets.tsv"),    emit: up_miRNA_targets
-    tuple val(meta2), path("*all_down_regulated_ENCORI_miRNA_targets.tsv"),  emit: down_miRNA_targets
-    tuple val(meta2), path("*up_regulated_miRNAs.tsv"),   optional: true
-    tuple val(meta2), path("*down_regulated_miRNAs.tsv"), optional: true
-    tuple val(meta2), path("*.log"),                                         emit: target_database_log
-    path "versions.yml",                                                     emit: versions
+    tuple val(meta2), path("*all_up_regulated_ENCORI_miRNA_targets.tsv"), path("*all_down_regulated_ENCORI_miRNA_targets.tsv"),  emit: miRNA_targets
+    tuple val(meta2), path("*up_regulated_miRNAs.tsv"), path("*down_regulated_miRNAs.tsv"), optional: true, emit: deseq2_output_split
+    tuple val(meta2), path("*.log"),  emit: target_database_log
+    path "versions.yml",              emit: versions
 
     script:
     // TODO change output file name so that it is based on the meta2.condition
