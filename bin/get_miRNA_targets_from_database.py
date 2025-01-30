@@ -92,7 +92,13 @@ def main():
     programNum = args_parsed.programNum
     program = args_parsed.program
 
-    logger.info(f"miRNA_list: {miRNA_list}")
+    logger.info(f"miRNA_list_file: {miRNA_list_file}")
+    logger.info(f"deseq2_output: {deseq2_output}")
+    logger.info(f"condition: {condition}")
+    logger.info(f"clipExpNum: {clipExpNum}")
+    logger.info(f"degraExpNum: {degraExpNum}")
+    logger.info(f"programNum: {programNum}")
+    logger.info(f"program: {program}")
 
     if deseq2_output == 'True':
         # The columns are expected to follow the format:
@@ -111,26 +117,27 @@ def main():
         
     elif deseq2_output == 'False':
         # Header expected to follow the format: miRNA   <up or down regulated>regulated
-        miRNA_list = pd.read_csv(miRNA_list, sep='\t', header=0)
+        miRNA_list = pd.read_csv(miRNA_list_file, sep='\t', header=0)
         up_regulated = miRNA_list[miRNA_list['regulated'] == 'up']
         down_regulated = miRNA_list[miRNA_list['regulated'] == 'down']
     else:
         logger.info("Please provide a valid value (True or False) for the deseq2_output argument.")
+
+    up_regulated_miRNA_targets = pd.DataFrame()
+    down_regulated_miRNA_targets = pd.DataFrame()
 
     # Get the miRNA targets df from the ENCORI database
     for index,row in up_regulated.iterrows():
         miRNA_targets = retrieve_miRNA_csvs(row['miRNA'], clipExpNum, degraExpNum, programNum, program)
 
         # TODO Try to reduce complexity
-        temp = up_regulated_miRNA_targets
-        up_regulated_miRNA_targets = pd.concat([temp,miRNA_targets])
+        up_regulated_miRNA_targets = pd.concat([up_regulated_miRNA_targets,miRNA_targets])
 
     for index,row in down_regulated.iterrows():
         miRNA_targets = retrieve_miRNA_csvs(row['miRNA'], clipExpNum, degraExpNum, programNum, program)
 
         # TODO Try to reduce complexity
-        temp = down_regulated_miRNA_targets
-        down_regulated_miRNA_targets = pd.concat([temp,miRNA_targets])
+        down_regulated_miRNA_targets = pd.concat([down_regulated_miRNA_targets,miRNA_targets])
 
     # Write all the information to a csv file
     up_regulated_miRNA_targets.to_csv(f"{condition}_all_up_regulated_ENCORI_miRNA_targets.tsv", sep='\t', index=False)
