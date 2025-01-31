@@ -91,7 +91,7 @@ def main():
     )
 
     down_regulated_final_target_gene_targeted_count = (
-        filtered_up_miRNA_targets.groupby('geneName')['miRNAname']
+        filtered_down_miRNA_targets.groupby('geneName')['miRNAname']
         .nunique()
         .reset_index()
         .rename(columns={'miRNAname': 'miRNA_DE_targets_count'})
