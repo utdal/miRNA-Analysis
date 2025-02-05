@@ -10,9 +10,8 @@ process MIRBASE_DOWNLOAD {
     path "versions.yml",            emit: versions
 
     script:
-    base_dir = params.base_dir
     """
-    python ${base_dir}/bin/get_miRBase_files.py
+   get_miRBase_files.py
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":

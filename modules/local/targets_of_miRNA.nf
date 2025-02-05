@@ -13,10 +13,9 @@ process TARGETS_OF_MIRNA {
 
     script:
     // TODO change output file name so that it is based on the meta2.condition
-    def base_dir = params.base_dir
     def args = task.ext.args ?: ''
     """    
-    python3 ${base_dir}/bin/get_miRNA_targets_from_database.py \
+    get_miRNA_targets_from_database.py \
         --miRNA_list ${miRNA_DE_file} \
         --condition ${meta2.condition} \
         $args
