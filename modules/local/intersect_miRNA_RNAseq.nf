@@ -15,7 +15,6 @@ process INTERSECT_MIRNA_RNASEQ {
     path "versions.yml",                   emit: versions
 
     script:
-    def baseDir = params.base_dir
     def condition = meta2.condition
     def args = task.ext.args ?: ''
     """
