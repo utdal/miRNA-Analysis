@@ -4,7 +4,7 @@
 
 // Import Local Subworkflows
 include { FASTQC_CUTADAPT_FASTQC as PREPROCESSING} from './../subworkflows/local/preprocessing.nf'
-//include { FASTQ_FIND_MIRNA_MIRDEEP2 } from './subworkflows/nf-core/fastq_find_mirna_mirdeep2/main'
+include { FASTQ_FIND_MIRNA_MIRDEEP2 } from './../subworkflows/nf-core/fastq_find_mirna_mirdeep2/main.nf'
 
 // Import Local Modules
 include { MIRBASE_DOWNLOAD } from './../modules/local/miRBase_download.nf'
@@ -18,6 +18,10 @@ include { DESEQ2 } from './../modules/local/deseq2.nf'
 workflow MIRNA_EXPRESSION {
 
     take:
+    skip_preprocessing
+    skip_mirdeep2
+    genome_fasta
+    bowtie_index
     samplesheet
     meta_data_files
 
@@ -35,9 +39,15 @@ workflow MIRNA_EXPRESSION {
         tuple(meta, file(row.fastq)) 
     }
 
-    // preprocess: fastqc cutadapt fastqc
-    PREPROCESSING (ch_samples)
-    ch_versions = ch_versions.mix(PREPROCESSING.out.versions.first())
+    if (skip_preprocessing != true) {
+        // preprocess: fastqc cutadapt fastqc
+        PREPROCESSING (ch_samples)
+        reads = PREPROCESSING.out.trimmed_reads
+        ch_versions = ch_versions.mix(PREPROCESSING.out.versions.first())
+    } else {
+        reads = ch_samples
+    }
+    
 
     // Download miRBase files
     MIRBASE_DOWNLOAD ()
@@ -46,16 +56,31 @@ workflow MIRNA_EXPRESSION {
     //
     // miRDeep2
     //
-    //FASTQ_FIND_MIRNA_MIRDEEP2 (
-        //PREPROCESSING.out.trimmed_reads, 
-        // genome fasta
-        // bowtie index???
-        // channel: [ val(meta),  mature_mirna, hairpin_mirna ]
-    //)
+    if (skip_mirdeep2 != true) {
+        // Make a channel for miRNA reference files
+        ch_mature_hsa = MIRBASE_DOWNLOAD.out.mature_hsa_miRNA.map { it -> it}
+        ch_hairpin_hsa = MIRBASE_DOWNLOAD.out.hairpin_hsa_miRNA.map { it -> it}
+        ch_mature_other = MIRBASE_DOWNLOAD.out.mature_other_miRNA.map { it -> it}
+        ch_mature_hairpin = ch_mature_hsa
+            .combine(ch_hairpin_hsa)
+            .combine(ch_mature_other)
+            .map { mature_hsa, hairpin_hsa, mature_other -> 
+                [[id: 'mature_hairpin'], mature_hsa, hairpin_hsa, mature_other] 
+            }
+            .first()
+        
+        FASTQ_FIND_MIRNA_MIRDEEP2 (
+            reads, 
+            genome_fasta,
+            bowtie_index,
+            ch_mature_hairpin
+        )
+        ch_versions = ch_versions.mix(FASTQ_FIND_MIRNA_MIRDEEP2.out.versions)
+    }
 
     // exceRpt
     EXCERPT (
-        PREPROCESSING.out.trimmed_reads
+        reads
     )
     ch_versions = ch_versions.mix(EXCERPT.out.versions.first())
 
@@ -85,7 +110,7 @@ workflow MIRNA_EXPRESSION {
     ch_meta_data = ch_meta_data_files.map { row -> 
         def meta2 = [ condition: row.condition ] 
         tuple(meta2, file(row.csv)) 
-    }    
+    }
 
     // DESeq2
     DESEQ2 (
@@ -95,5 +120,6 @@ workflow MIRNA_EXPRESSION {
 
     emit:
     miRNA_DE = DESEQ2.out.miRNA_DE  // channel: [ val(meta2), path("*.tsv") ]
+    versions = ch_versions
     
 }

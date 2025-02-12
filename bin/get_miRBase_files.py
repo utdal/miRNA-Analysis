@@ -59,10 +59,18 @@ def filter_miRNA_refs():
             if "hsa" in temp:
                 #sequence = re.sub('[^GATCU]', "N", str(record.seq).upper())
                 #record.seq = sequence
+                
+                # miRDeep2 requires that there are no white spaces in the id
+                record.description = ""
+                record.name = ""
                 SeqIO.write(record, hsa_file, "fasta")
             else:
                 #sequence = re.sub('[^GATCU]', "N", str(record.seq).upper())
                 #record.seq = sequence
+
+                # miRDeep2 requires that there are no white spaces in the id
+                record.description = ""
+                record.name = ""
                 SeqIO.write(record, other_file, "fasta")
         
 
@@ -72,6 +80,10 @@ def filter_miRNA_refs():
             if "hsa" in temp:
                 #sequence = re.sub('[^GATCU]', "N", str(record.seq).upper())
                 #record.seq = sequence
+
+                # miRDeep2 requires that there are no white spaces in the id
+                record.description = ""
+                record.name = ""
                 SeqIO.write(record, hsa_file, "fasta")
 
 def main():

@@ -27,7 +27,7 @@ process MIRDEEP2_MAPPER {
     mapper.pl \\
     ${reads} \\
     $args \\
-    -p ${index}/${meta2.id}  \\
+    -p ${index}/${index}  \\
     -s ${prefix}_collapsed.fa \\
     -t ${prefix}_reads_collapsed_vs_${meta2.id}_genome.arf
 
