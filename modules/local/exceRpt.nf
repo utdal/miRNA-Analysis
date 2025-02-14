@@ -2,6 +2,8 @@ process EXCERPT {
     tag "$meta.id"
     label 'process_high'
 
+    container "docker://utdpaincenter/mirna-analysis-excerpt:1.0"
+
     input:
     tuple val(meta), path(reads)
 
