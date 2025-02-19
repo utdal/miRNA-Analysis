@@ -2,7 +2,7 @@ process UNIVEC_FILTERING {
     tag "$meta.id"
     label 'process_high'
 
-    container "docker://utdpaincenter/mirna-analysis-excerpt-univec-filtering:1.0"
+    container "docker://utdpaincenter/mirna-analysis-excerpt-univec-filtering:1.2"
 
     input:
     tuple val(meta), path(trimmed_reads)
