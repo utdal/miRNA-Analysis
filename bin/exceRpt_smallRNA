@@ -318,8 +318,8 @@ $(OUTDIR)/endogenousAlignments_genomeUnmapped_transcriptome_Unmapped.R1.fastq.gz
 	gzip -c $(OUTPUT_DIR)/$(SAMPLE_ID)/endogenousAlignments_genomeUnmapped_transcriptome_Unmapped.out.mate1 > $(OUTPUT_DIR)/$(SAMPLE_ID)/endogenousAlignments_genomeUnmapped_transcriptome_Unmapped.R1.fastq.gz
 	#
 	## Count # mapped reads
-	cat $(OUTPUT_DIR)/$(SAMPLE_ID)/endogenousAlignments_genome_Log.final.out | grep "Number of input reads" | awk -F "|\t" '{print "reads_used_for_alignment\t"$$2}' >> $(OUTPUT_DIR)/$(SAMPLE_ID).stats
-	cat $(OUTPUT_DIR)/$(SAMPLE_ID)/endogenousAlignments_genome*apped_transcriptome_Log.final.out | grep "Number of input reads\|Uniquely mapped reads number\|Number of reads mapped to multiple loci" | sed '2,4d' | awk -F "|\t" '{SUM+=$$2}END{print "genome\t"SUM}' >> $(OUTPUT_DIR)/$(SAMPLE_ID).stats
+	cat $(OUTPUT_DIR)/$(SAMPLE_ID)/endogenousAlignments_genome_Log.final.out | grep "Number of input reads" | awk -F "\t" '{print "reads_used_for_alignment\t"$$2}' >> $(OUTPUT_DIR)/$(SAMPLE_ID).stats
+	cat $(OUTPUT_DIR)/$(SAMPLE_ID)/endogenousAlignments_genome*apped_transcriptome_Log.final.out | grep "Number of input reads\|Uniquely mapped reads number\|Number of reads mapped to multiple loci" | sed '2,4d' | awk -F "\t" '{SUM+=$$2}END{print "genome\t"SUM}' >> $(OUTPUT_DIR)/$(SAMPLE_ID).stats
 	#
 	## Compress STAR logs
 	gzip $(OUTPUT_DIR)/$(SAMPLE_ID)/endogenousAlignments_genomeMapped_transcriptome_Log.out
