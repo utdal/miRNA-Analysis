@@ -13,6 +13,7 @@ include { EXCERPTMERGE } from './../modules/local/exceRptMerge.nf'
 include { HTSEQ_COUNT } from './../modules/local/htseq-count.nf'
 include { CONCAT_RAW_COUNTS } from './../modules/local/concat_raw_counts.nf'
 include { DESEQ2 } from './../modules/local/deseq2.nf'
+include { MERGEMIRDEEP2 } from '../modules/local/mergemiRDeep2.nf'
 
 
 workflow MIRNA_EXPRESSION {
@@ -29,6 +30,7 @@ workflow MIRNA_EXPRESSION {
 
     ch_versions = Channel.empty()
 
+    // TODO Add a path check for each input file
     // Get input reads
     ch_samplesheet = Channel
         .fromPath(samplesheet)
@@ -69,13 +71,18 @@ workflow MIRNA_EXPRESSION {
             }
             .first()
         
+        // Run miRDeep2 and then merge the results
         FASTQ_FIND_MIRNA_MIRDEEP2 (
             reads, 
             genome_fasta,
             bowtie_index,
             ch_mature_hairpin
         )
+        | combine
+        | collect
+        | MERGEMIRDEEP2
         ch_versions = ch_versions.mix(FASTQ_FIND_MIRNA_MIRDEEP2.out.versions)
+        //ch_versions = ch_versions.mix(MERGEMIRDEEP2.out.versions.first())
     }
 
     // exceRpt
@@ -85,21 +92,19 @@ workflow MIRNA_EXPRESSION {
     ch_versions = ch_versions.mix(EXCERPT.out.versions.first())
 
     // TODO Combine exceRpt results
-    //EXCERPTMERGE (
-        //EXCERPT.out.exceRpt_folder
-    //)
+    // EXCERPTMERGE (
+    //     EXCERPT.out.exceRpt_folder
+    // )
 
-    // HTSeq-count
+    // HTSeq-count then merge results
     HTSEQ_COUNT (
         EXCERPT.out.exceRpt_aligned_bam,
         MIRBASE_DOWNLOAD.out.miRNA_gff
     )
+    | combine
+    | collect
+    | CONCAT_RAW_COUNTS
     ch_versions = ch_versions.mix(HTSEQ_COUNT.out.versions.first())
-    
-    // Concatenate raw counts
-    CONCAT_RAW_COUNTS (
-        HTSEQ_COUNT.out.raw_counts
-    )
     ch_versions = ch_versions.mix(CONCAT_RAW_COUNTS.out.versions.first())
 
     // Parse all of the meta datas
