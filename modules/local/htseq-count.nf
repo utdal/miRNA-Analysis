@@ -24,7 +24,7 @@ process HTSEQ_COUNT{
         -t miRNA \\
         -i Name \\
         ${args} \\
-        -c ${meta.id}_raw_counts.tsv \\
+        -c ${meta.id}.tsv \\
         -n ${threads} \\
         ${bam} \\
         ${gff3}
