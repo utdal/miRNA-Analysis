@@ -78,11 +78,16 @@ workflow MIRNA_EXPRESSION {
             bowtie_index,
             ch_mature_hairpin
         )
-        | combine
-        | collect
-        | MERGEMIRDEEP2
         ch_versions = ch_versions.mix(FASTQ_FIND_MIRNA_MIRDEEP2.out.versions)
-        //ch_versions = ch_versions.mix(MERGEMIRDEEP2.out.versions.first())
+
+        // Get all miRDeep2 results output files
+        all_miRDeep2_results = FASTQ_FIND_MIRNA_MIRDEEP2.out.outputs.collect{it[1]}
+        
+        // Merge miRDeep2 results
+        MERGEMIRDEEP2 (
+            all_miRDeep2_results
+        )
+        ch_versions = ch_versions.mix(MERGEMIRDEEP2.out.versions.first())
     }
 
     // exceRpt
@@ -91,10 +96,11 @@ workflow MIRNA_EXPRESSION {
     )
     ch_versions = ch_versions.mix(EXCERPT.out.versions.first())
 
-    // TODO Combine exceRpt results
+    // all_excerpt_folders = EXCERPT.out.exceRpt_folder.collect()
     // EXCERPTMERGE (
-    //     EXCERPT.out.exceRpt_folder
+    //     all_excerpt_folders
     // )
+    
 
     // HTSeq-count then merge results
     HTSEQ_COUNT (
