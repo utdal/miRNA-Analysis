@@ -96,10 +96,10 @@ workflow MIRNA_EXPRESSION {
     )
     ch_versions = ch_versions.mix(EXCERPT.out.versions.first())
 
-    // all_excerpt_folders = EXCERPT.out.exceRpt_folder.collect()
-    // EXCERPTMERGE (
-    //     all_excerpt_folders
-    // )
+    all_excerpt_folders = EXCERPT.out.exceRpt_folder.collect{it[1]}
+    EXCERPTMERGE (
+        all_excerpt_folders
+    )
     
 
     // HTSeq-count then merge results
