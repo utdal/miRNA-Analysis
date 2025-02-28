@@ -44,6 +44,9 @@ perform_analysis <- function(dds, metadata, combination, min_padj, min_lfc, dir_
   res_lfcs <- lfcShrink(dds, coef=combination, type = "apeglm")
   plotMA(res_lfcs)
 
+  # Close pdf
+  dev.off()
+
   # write csv file with only the significant results
   resdata <- merge(as.data.frame(res_lfcs), as.data.frame(counts(dds, normalized=TRUE)), by="row.names", sort=FALSE)
   names(resdata)[1] <- "miRNA"
@@ -70,7 +73,6 @@ perform_analysis <- function(dds, metadata, combination, min_padj, min_lfc, dir_
   }
 
   log_info("Making enchanced volcano plot")
-  library(EnhancedVolcano)
   
   # Create Enhanced Volcano Plot
   volcano_plot <- EnhancedVolcano(res_lfcs,
@@ -89,10 +91,11 @@ perform_analysis <- function(dds, metadata, combination, min_padj, min_lfc, dir_
                                   labSize = 3,
                                   drawConnectors = TRUE,
                                   boxedLabels = TRUE)
-  volcano_plot
+  # Save volcano plot to png
+  ggsave(paste(dir_name, "/", combination, "_volcano_plot.png", sep=""), plot=volcano_plot, width=8, height=6, dpi=600)
   log_info("Completed analysis of {combination}")
 
-  dev.off()
+
 }
 
 # Function to make a dataframe with only the samples in the metadata
@@ -161,8 +164,8 @@ counts <- as.matrix(read.csv(all_raw_counts_file, row.names=1, sep='\t'))
 log_info("Read counts for all samples.")
 log_info("raw_counts_columns: {colnames(counts)}")
 
-# Remove rows 1 to 5 inclusive
-counts <- counts[-c(1:5), ]
+# Remove the rows from HTSeq that start with __ (just some extra information)
+counts <- counts[!grepl("^__", rownames(counts)), ]
 
 # Get the metadata
 metadata <- read.csv(metadata_file, row.names=1)
