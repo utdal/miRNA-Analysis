@@ -13,7 +13,7 @@ process CONCAT_RAW_COUNTS {
 
     script:
     """
-    #!/usr/bin/env python
+    #!/usr/bin/env python3
     import pandas as pd
     import os, platform
 
