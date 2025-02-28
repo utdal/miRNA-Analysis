@@ -1,6 +1,8 @@
 process TARGETS_OF_MIRNA {
     tag "$meta2.condition"
-    label 'process_low'    
+    label 'process_low'
+
+    container 'docker://utdpaincenter/mirna-analysis-pandas-biopython-requests:1.3'   
 
     input:
     tuple val(meta2), path(miRNA_DE_file)

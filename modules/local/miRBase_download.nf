@@ -1,6 +1,8 @@
 process MIRBASE_DOWNLOAD {
     label 'process_low'
 
+    container 'docker://utdpaincenter/mirna-analysis-pandas-biopython-requests:1.3'
+
     output:
     path("hsa.gff3"),               emit: miRNA_gff
     path("mature_hsa.fa"),          emit: mature_hsa_miRNA

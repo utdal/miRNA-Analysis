@@ -1,6 +1,8 @@
 process CONCAT_RAW_COUNTS {
     label 'process_low'
 
+    container 'docker://utdpaincenter/mirna-analysis-pandas-biopython-requests:1.3'
+
     input:
     tuple val(meta), path(raw_counts)
 
