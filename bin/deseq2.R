@@ -6,8 +6,10 @@
 
 # Perform analysis for a given combination
 perform_analysis <- function(dds, metadata, combination, min_padj, min_lfc, dir_name) {
-  log_info("Performing analysis for: {combination}")
-  res <- results(dds, name=combination)
+  log_info("Performing analysis for: ", combination)
+  res <- results(dds, name=combination, alpha=min_padj)
+  # Order results based on padj
+  res <- res[order(res$padj), ]
 
   # Order the results based on padj and LFC
   res_ordered <- res[order(res$padj, -res$log2FoldChange), ]
@@ -18,8 +20,11 @@ perform_analysis <- function(dds, metadata, combination, min_padj, min_lfc, dir_
             file=file_name,
             row.names=TRUE)
 
-  log_info("Obtained results for {combination}. Here is the summary:")
+  summary_file <- paste(combination, "_summary.txt", sep="")
+  summary_file <- file.path(dir_name, summary_file)
+  sink(summary_file)
   summary(res)
+  sink()
 
   # Create plots and save to pdf file
   # Create file name for the pdf
@@ -53,8 +58,11 @@ perform_analysis <- function(dds, metadata, combination, min_padj, min_lfc, dir_
 
   res_table_thresh <- resdata %>%
     mutate(threshold=padj<min_padj & abs(log2FoldChange)>min_lfc)
-  
-  resdata_file_name = paste(combination, "_only_significant_results.csv", sep="")
+
+  # Sort by TRUE, FALSE, NA
+  res_table_thresh <- res_table_thresh[order(res_table_thresh$threshold, na.last=TRUE, decreasing=TRUE), ]
+
+  resdata_file_name = paste(combination, "_shrinkage_apeglm_results.csv", sep="")
   resdata_file_name = file.path(dir_name, resdata_file_name)
   write.csv(res_table_thresh, resdata_file_name, row.names=FALSE)
 
@@ -93,7 +101,7 @@ perform_analysis <- function(dds, metadata, combination, min_padj, min_lfc, dir_
                                   boxedLabels = TRUE)
   # Save volcano plot to png
   ggsave(paste(dir_name, "/", combination, "_volcano_plot.png", sep=""), plot=volcano_plot, width=8, height=6, dpi=600)
-  log_info("Completed analysis of {combination}")
+  log_info("Completed analysis of", combination)
 
 
 }
@@ -102,9 +110,9 @@ perform_analysis <- function(dds, metadata, combination, min_padj, min_lfc, dir_
 get_metadata_samples <- function(counts, metadata){
   # Get the sample ids from the metadata
   sample_ids <- rownames(metadata)
-  log_info("Sample ids from metadata: {sample_ids}")
+  log_info("Sample ids from metadata: ", toString(sample_ids))
 
-  log_info("Sample ids from counts: {colnames(counts)}")
+  log_info("Sample ids from counts: ", toString(colnames(counts)))
   
   # Get the read counts for samples within the metadata
   counts <- counts[, sample_ids]
@@ -162,7 +170,7 @@ log_info("Starting DESeq2 analysis")
 counts <- as.matrix(read.csv(all_raw_counts_file, row.names=1, sep='\t'))
 
 log_info("Read counts for all samples.")
-log_info("raw_counts_columns: {colnames(counts)}")
+log_info("raw_counts_columns: ", toString(colnames(counts)))
 
 # Remove the rows from HTSeq that start with __ (just some extra information)
 counts <- counts[!grepl("^__", rownames(counts)), ]
@@ -170,7 +178,7 @@ counts <- counts[!grepl("^__", rownames(counts)), ]
 # Get the metadata
 metadata <- read.csv(metadata_file, row.names=1)
 
-log_info("Metadata for all samples. {colnames(metadata)}")
+log_info("Metadata for all samples. ", toString(colnames(metadata)))
 
 # Get the read counts for samples within the metadata
 counts <- get_metadata_samples(counts, metadata)
@@ -178,9 +186,6 @@ counts <- get_metadata_samples(counts, metadata)
 # Verify that the columns in the counts data are the same as the rows in the metadata
 all(colnames(counts) %in% rownames(metadata))
 all(colnames(counts) == rownames(metadata))
-
-log_info("Read counts for samples within the metadata:")
-head(counts)
 
 ######################################################################################
 # Start differential expression analysis
@@ -194,14 +199,12 @@ if (length(for_design) == 1) {
   design_string <- paste("~", paste(for_design, collapse = " + "))
 } 
 
-log_info("Design string: {design_string}")
+log_info("Design string: ", design_string)
 
 # Create DESeq2 object
 dds <- DESeqDataSetFromMatrix(countData = counts, 
                               colData = metadata, 
                               design = as.formula(design_string))
-
-log_info("colData(dds): {colData(dds)}")
 
 # Run DESeq2 analysis
 dds <- DESeq(dds)
