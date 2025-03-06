@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import pandas as pd
+import numpy as np
 import requests
 import argparse
 import logging
@@ -15,6 +16,7 @@ logger.setLevel(logging.INFO)
 # TargetScan has predicted miRNA targets
 # ENCORI has validated miRNA targets
 
+# Retreive from ENCORI
 def retrieve_miRNA_csvs(miRNA, clipExpNum, degraExpNum, programNum, program):
     url = f'https://rnasysu.com/encori/api/miRNATarget/?assembly=hg38&geneType=mRNA&miRNA={miRNA}&clipExpNum={clipExpNum}&degraExpNum={degraExpNum}&pancancerNum=0&programNum={programNum}&program={program}&target=all&cellType=all'
     response = requests.get(url)
@@ -56,47 +58,59 @@ def main():
     )
 
     arg_parser.add_argument(
-        "--clipExpNum",
-        type=int,
-        required=True,
-        help="Minimum number of supporting CLIP-seq experiments required for miRNA-mRNA interaction.",
-    )
-
-    arg_parser.add_argument(
-        "--degraExpNum",
-        type=int,
-        required=True,
-        help="Minimum number of supporting degradome-seq experiments.",
-    )
-
-    arg_parser.add_argument(
-        "--programNum",
-        type=int,
-        required=True,
-        help="Minimum number of target-predicting programs. <= .7",
-    )
-
-    arg_parser.add_argument(
-        "--program",
+        "--hsa_miRTarBase_TargetScan_db",
         type=str,
         required=True,
-        help="Target-predicting programs (PITA, RNA22, miRmap, DIANA-microT, miRanda, PicTar, and TargetScan).",
+        help="The file with the hsa_miRTarBase_TargetScan database.",
+    )
+
+    arg_parser.add_argument(
+        "--experimental_evidence",
+        type=str,
+        required=True,
+        help="How strong the experimental evidence should be. Options: 'strong', 'weak'.",
+    )
+
+    arg_parser.add_argument(
+        "--min_weighted_context_percentile",
+        type=float,
+        required=True,
+        help="The minimum weighted context percentile for predicted targets. Options: 0-100. If no predicted targets are to be used enter 101.",
+    )
+
+    arg_parser.add_argument(
+        "--max_predicted_KD",
+        type=float,
+        required=True,
+        help="The minimum predicted KD for predicted targets. Smaller KD is a stronger prediction. Options: -inf to 0. If no predicted targets are to be used enter 1.",
     )
 
     args_parsed = arg_parser.parse_args()
     miRNA_list_file = args_parsed.miRNA_list
     deseq2_output = args_parsed.deseq2_output
-    clipExpNum = args_parsed.clipExpNum
-    degraExpNum = args_parsed.degraExpNum
-    programNum = args_parsed.programNum
-    program = args_parsed.program
+    hsa_miRTarBase_TargetScan_file = args_parsed.hsa_miRTarBase_TargetScan_db
+    experimental_evidence = args_parsed.experimental_evidence
+    min_weighted_context_percentile = args_parsed.min_weighted_context_percentile
+    max_predicted_KD = args_parsed.max_predicted_KD
 
     logger.info(f"miRNA_list_file: {miRNA_list_file}")
     logger.info(f"deseq2_output: {deseq2_output}")
-    logger.info(f"clipExpNum: {clipExpNum}")
-    logger.info(f"degraExpNum: {degraExpNum}")
-    logger.info(f"programNum: {programNum}")
-    logger.info(f"program: {program}")
+    logger.info(f"experimental_evidence: {experimental_evidence}")
+    logger.info(f"min_weighted_context_percentile: {min_weighted_context_percentile}")
+    logger.info(f"max_predicted_KD: {max_predicted_KD}")
+
+    # Read the hsa_miRTarBase_TargetScan database
+    db = pd.read_csv(hsa_miRTarBase_TargetScan_file, sep='\t', header=0)
+
+    db['weighted context++ score percentile'].replace(".", 0, inplace=True)
+    db['weighted context++ score percentile'] = db['weighted context++ score percentile'].astype(float)
+
+    db['Predicted relative KD'].replace(".", 1, inplace=True)
+    db['Predicted relative KD'] = db['Predicted relative KD'].astype(float)
+
+    db.head(10).to_csv("db_head.tsv", sep='\t', index=False, header=True)
+    logger.info(db['weighted context++ score percentile'].dtype)
+    logger.info(db['Predicted relative KD'].dtype)
 
     if deseq2_output == 1:
         # The columns are expected to follow the format:
@@ -104,52 +118,42 @@ def main():
 
         # Separate the miRNA_list file into 2 files: up and down regulated miRNAs
         miRNA_DE = pd.read_csv(miRNA_list_file, header=0)
-        print(miRNA_DE.columns)
-        print(miRNA_DE['threshold'])
         up_regulated = miRNA_DE[(miRNA_DE['log2FoldChange'] > 0) & (miRNA_DE['threshold'] == True)]
         up_regulated.columns = ['miRNA'] + up_regulated.columns[1:].tolist()
         down_regulated = miRNA_DE[(miRNA_DE['log2FoldChange'] < 0) & (miRNA_DE['threshold'] == True)]
         down_regulated.columns = ['miRNA'] + down_regulated.columns[1:].tolist()
-
-        print(up_regulated.columns)
 
         # Write the up and down regulated miRNAs to a file
         up_regulated.to_csv("up_regulated_miRNAs.tsv", sep=',', index=False)
         down_regulated.to_csv("down_regulated_miRNAs.tsv", sep=',', index=False)
         
     elif deseq2_output == 0:
-        print("Non DESeq2 output file being processed")
+        logger.info("Non DESeq2 output file being processed")
         # Header expected to follow the format: miRNA   <up or down regulated>regulated
         miRNA_list = pd.read_csv(miRNA_list_file, sep='\t', header=0)
         up_regulated = miRNA_list[miRNA_list['regulated'] == 'up']
         down_regulated = miRNA_list[miRNA_list['regulated'] == 'down']
     else:
-        print("Please provide a valid value (yes or no) for the deseq2_output argument.")
+        logger.info("Please provide a valid value (yes or no) for the deseq2_output argument.")
 
     up_regulated_miRNA_targets = pd.DataFrame()
     down_regulated_miRNA_targets = pd.DataFrame()
 
-    # Get the miRNA targets df from the ENCORI database
-    up_list = []
-    for index,row in up_regulated.iterrows():
-        miRNA_targets = retrieve_miRNA_csvs(row['miRNA'], clipExpNum, degraExpNum, programNum, program)
+    # Get the miRNA targets df from the database
+    up_mirna = up_regulated['miRNA'].unique()
+    down_mirna = down_regulated['miRNA'].unique()
 
-        up_list.append(miRNA_targets)
-    up_regulated_miRNA_targets = pd.concat(up_list)
-
-    down_list = []
-    for index,row in down_regulated.iterrows():
-        miRNA_targets = retrieve_miRNA_csvs(row['miRNA'], clipExpNum, degraExpNum, programNum, program)
-
-        down_list.append(miRNA_targets)
-        
-    down_regulated_miRNA_targets = pd.concat(down_list)
+    up_regulated_miRNA_targets = db[db['miRNA'].isin(up_mirna)]
+    up_regulated_miRNA_targets = up_regulated_miRNA_targets[(up_regulated_miRNA_targets['Experimental Evidence'] == experimental_evidence) | (up_regulated_miRNA_targets['weighted context++ score percentile'] >= min_weighted_context_percentile) & (up_regulated_miRNA_targets['Predicted relative KD'] <= max_predicted_KD)]
+    
+    down_regulated_miRNA_targets = db[db['miRNA'].isin(down_mirna)]
+    down_regulated_miRNA_targets = down_regulated_miRNA_targets[(down_regulated_miRNA_targets['Experimental Evidence'] == experimental_evidence) | (down_regulated_miRNA_targets['weighted context++ score percentile'] >= min_weighted_context_percentile) & (down_regulated_miRNA_targets['Predicted relative KD'] <= max_predicted_KD)]
 
     # Write all the information to a csv file
-    up_regulated_miRNA_targets.to_csv("all_up_regulated_ENCORI_miRNA_targets.tsv", sep='\t', index=False)
-    down_regulated_miRNA_targets.to_csv("all_down_regulated_ENCORI_miRNA_targets.tsv", sep='\t', index=False)
+    up_regulated_miRNA_targets.to_csv("all_up_reg_miRNA_targets_miRTarBase_TargetScan.tsv", sep='\t', index=False)
+    down_regulated_miRNA_targets.to_csv("all_down_reg_miRNA_targets_miRTarBase_TargetScan.tsv", sep='\t', index=False)
 
-
+    logger.info("Done")
 
 if __name__ == "__main__":
     main()
