@@ -129,7 +129,7 @@ parser <- ArgumentParser()
 parser$add_argument("--all_raw_counts", help="Path to the raw counts file for all samples", type="character")
 parser$add_argument("--metadata", help="Path to the metadata file", type="character")
 parser$add_argument("--min_padj", help="Minimum adjusted p-value for differential expression", type="numeric", default=0.05)
-parser$add_argument("--min_log2fc", help="Minimum log2 fold change for differential expression", type="numeric", default=1.5)
+parser$add_argument("--min_log2fc", help="Minimum log2 fold change for differential expression", type="numeric", default=0.58)
 parser$add_argument("--meta2_condition", help="Essentially the symbol for the metadata file", type="character", default="metadata")
 
 args <- parser$parse_args()

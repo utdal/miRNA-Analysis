@@ -18,7 +18,7 @@ process DESEQ2 {
     script:
     def baseDir = params.base_dir
     def min_padj = params.min_padj ?: 0.05
-    def min_lfc = params.min_lfc ?: 1.5
+    def min_lfc = params.min_lfc ?: 0.58
     """
     Rscript ${baseDir}/bin/deseq2.R \\
         --all_raw_counts ${all_raw_counts} \\
