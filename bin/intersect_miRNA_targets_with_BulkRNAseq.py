@@ -52,7 +52,9 @@ def main():
 
     # Read miRNA target files
     up_miRNA_targets = pd.read_csv(up_miRNA_targets_file, sep='\t', header=0)
+    up_miRNA_targets['Target Gene (Entrez ID)'] = up_miRNA_targets['Target Gene (Entrez ID)'].astype(int)
     down_miRNA_targets = pd.read_csv(down_miRNA_targets_file, sep='\t', header=0)
+    down_miRNA_targets['Target Gene (Entrez ID)'] = down_miRNA_targets['Target Gene (Entrez ID)'].astype(int)
 
     print(bulkRNAseq_file)
 
@@ -75,29 +77,33 @@ def main():
         logger.info(len(bulkRNAseq_min))
 
         # Filter the up regulated miRNA targets
-        up_miRNA_targets = up_miRNA_targets[up_miRNA_targets['geneID'].isin(bulkRNAseq_min['gene_name']) | up_miRNA_targets["geneName"].isin(bulkRNAseq_min['gene_name'])]
-        up_miRNA_targets.to_csv("filtered_ENCORI_up_miRNA_DE_targets.tsv", sep='\t', index=False)
+        up_miRNA_targets = up_miRNA_targets[up_miRNA_targets['Target Gene (Entrez ID)'].isin(bulkRNAseq_min['gene_name']) | up_miRNA_targets["Target Gene Symbol"].isin(bulkRNAseq_min['gene_name'])]
+        up_miRNA_targets.to_csv("filtered_up_miRNA_DE_targets.tsv", sep='\t', index=False)
 
         # Filter the down regulated miRNA targets
-        down_miRNA_targets = down_miRNA_targets[down_miRNA_targets['geneID'].isin(bulkRNAseq_min['gene_name']) | down_miRNA_targets["geneName"].isin(bulkRNAseq_min['gene_name'])]
-        down_miRNA_targets.to_csv("filtered_ENCORI_down_miRNA_DE_targets.tsv", sep='\t', index=False)
+        down_miRNA_targets = down_miRNA_targets[down_miRNA_targets['Target Gene (Entrez ID)'].isin(bulkRNAseq_min['gene_name']) | down_miRNA_targets["Target Gene Symbol"].isin(bulkRNAseq_min['gene_name'])]
+        down_miRNA_targets.to_csv("filtered_down_miRNA_DE_targets.tsv", sep='\t', index=False)
 
     #############################################################################################
     # Get the number of miRNAs targeting each gene within the filtered tissue gene expression
     #############################################################################################
     up_regulated_final_target_gene_targeted_count = (
-        up_miRNA_targets.groupby('geneName')['miRNAname']
+        up_miRNA_targets.groupby('Target Gene Symbol')['miRNA']
         .nunique()
         .reset_index()
-        .rename(columns={'miRNAname': 'miRNA_DE_targets_count'})
+        .rename(columns={'miRNA': 'miRNA_DE_targets_count'})
     )
 
+    logger.info(f"Up Regulated: Total number of interactions = {up_regulated_final_target_gene_targeted_count['miRNA_DE_targets_count'].sum()}")
+
     down_regulated_final_target_gene_targeted_count = (
-        down_miRNA_targets.groupby('geneName')['miRNAname']
+        down_miRNA_targets.groupby('Target Gene Symbol')['miRNA']
         .nunique()
         .reset_index()
-        .rename(columns={'miRNAname': 'miRNA_DE_targets_count'})
+        .rename(columns={'miRNA': 'miRNA_DE_targets_count'})
     )
+
+    logger.info(f"Down Regulated: Total number of interactions = {down_regulated_final_target_gene_targeted_count['miRNA_DE_targets_count'].sum()}")
 
     up_regulated_final_target_gene_targeted_count.to_csv("up_regulated_final_target_gene_targeted_count.tsv", sep='\t', index=False)
     down_regulated_final_target_gene_targeted_count.to_csv("down_regulated_final_target_gene_targeted_count.tsv", sep='\t', index=False)

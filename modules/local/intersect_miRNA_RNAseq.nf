@@ -14,14 +14,14 @@ process INTERSECT_MIRNA_RNASEQ {
     path "versions.yml",                   emit: versions
 
     script:
-    def args = task.ext.args ?: ''
+    def min_expression = params.min_expression ?: 50
     """
 
     intersect_miRNA_targets_with_BulkRNAseq.py \
         --up_miRNA_targets ${up_regulated_miRNA_targets} \
         --down_miRNA_targets ${down_regulated_miRNA_targets} \
         --bulkRNAseq ${tissue_specific_genes} \
-        ${args}
+        --min_expression ${min_expression}
     
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
