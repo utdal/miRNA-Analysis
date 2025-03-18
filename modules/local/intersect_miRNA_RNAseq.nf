@@ -9,12 +9,14 @@ process INTERSECT_MIRNA_RNASEQ {
     val tissue_specific_genes
 
     output:
-    tuple path("up_regulated_final_target_gene_targeted_count.tsv"),  path("down_regulated_final_target_gene_targeted_count.tsv"), emit: intersect_targets
-    path("*.log"),       emit: intersect_targets_log
-    path "versions.yml",                   emit: versions
+    tuple path("up_regulated_final_target_gene_targeted_count.tsv"),  path("down_regulated_final_target_gene_targeted_count.tsv"),                                  emit: intersect_targets
+    tuple path("RNAseq_filtered_up_miRNA_DE_targets.tsv"), path("RNAseq_filtered_down_miRNA_DE_targets.tsv"), optional: true,                                       emit: RNAseq_filtered_targets
+    tuple path("filtered_up_regulated_final_target_gene_targeted_count.tsv"), path("filtered_down_regulated_final_target_gene_targeted_count.tsv"), optional: true, emit: filtered_intersect_targets
+    path("*.log"),                                                                                                                                                  emit: intersect_targets_log
+    path "versions.yml",                                                                                                                                            emit: versions
 
     script:
-    def min_expression = params.min_expression ?: 50
+    def min_expression = params.min_expression ?: 0
     """
 
     intersect_miRNA_targets_with_BulkRNAseq.py \
