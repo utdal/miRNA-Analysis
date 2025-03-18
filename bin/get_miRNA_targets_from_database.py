@@ -144,10 +144,34 @@ def main():
     down_mirna = down_regulated['miRNA'].unique()
 
     up_regulated_miRNA_targets = db[db['miRNA'].isin(up_mirna)]
-    up_regulated_miRNA_targets = up_regulated_miRNA_targets[(up_regulated_miRNA_targets['Experimental Evidence'] == experimental_evidence) | (up_regulated_miRNA_targets['weighted context++ score percentile'] >= min_weighted_context_percentile) & (up_regulated_miRNA_targets['Predicted relative KD'] <= max_predicted_KD)]
-    
     down_regulated_miRNA_targets = db[db['miRNA'].isin(down_mirna)]
-    down_regulated_miRNA_targets = down_regulated_miRNA_targets[(down_regulated_miRNA_targets['Experimental Evidence'] == experimental_evidence) | (down_regulated_miRNA_targets['weighted context++ score percentile'] >= min_weighted_context_percentile) & (down_regulated_miRNA_targets['Predicted relative KD'] <= max_predicted_KD)]
+
+    # Set the Kd column to a numeric value
+    up_regulated_miRNA_targets['Predicted relative KD'] = pd.to_numeric(up_regulated_miRNA_targets['Predicted relative KD'], errors='coerce')
+    up_regulated_miRNA_targets['Predicted relative KD'] = up_regulated_miRNA_targets['Predicted relative KD'].fillna(float('inf'))
+    down_regulated_miRNA_targets['Predicted relative KD'] = pd.to_numeric(down_regulated_miRNA_targets['Predicted relative KD'], errors='coerce')
+    down_regulated_miRNA_targets['Predicted relative KD'] = down_regulated_miRNA_targets['Predicted relative KD'].fillna(float('inf'))
+
+    if experimental_evidence == 'strong':
+        up_regulated_miRNA_targets = up_regulated_miRNA_targets[(up_regulated_miRNA_targets['Experimental Evidence'] == experimental_evidence) | 
+                                                                (up_regulated_miRNA_targets['weighted context++ score percentile'] >= min_weighted_context_percentile) & 
+                                                                (up_regulated_miRNA_targets['Predicted relative KD'] <= max_predicted_KD)]
+        down_regulated_miRNA_targets = down_regulated_miRNA_targets[(down_regulated_miRNA_targets['Experimental Evidence'] == experimental_evidence) | 
+                                                                    (down_regulated_miRNA_targets['weighted context++ score percentile'] >= min_weighted_context_percentile) & 
+                                                                    (down_regulated_miRNA_targets['Predicted relative KD'] <= max_predicted_KD)]
+    else:
+        up_regulated_miRNA_targets = up_regulated_miRNA_targets[(up_regulated_miRNA_targets['Experimental Evidence'] == 'weak') | 
+                                                                up_regulated_miRNA_targets['Experimental Evidence'] == 'strong' | 
+                                                                (up_regulated_miRNA_targets['weighted context++ score percentile'] >= min_weighted_context_percentile) & 
+                                                                (up_regulated_miRNA_targets['Predicted relative KD'] <= max_predicted_KD)]
+        down_regulated_miRNA_targets = down_regulated_miRNA_targets[(down_regulated_miRNA_targets['Experimental Evidence'] == 'weak') | 
+                                                                    down_regulated_miRNA_targets['Experimental Evidence'] == 'strong' | 
+                                                                    (down_regulated_miRNA_targets['weighted context++ score percentile'] >= min_weighted_context_percentile) & 
+                                                                    (down_regulated_miRNA_targets['Predicted relative KD'] <= max_predicted_KD)]
+
+    # Convert the inf back to .
+    up_regulated_miRNA_targets['Predicted relative KD'] = up_regulated_miRNA_targets['Predicted relative KD'].replace(float('inf'), '.')
+    down_regulated_miRNA_targets['Predicted relative KD'] = down_regulated_miRNA_targets['Predicted relative KD'].replace(float('inf'), '.')
 
     # Write all the information to a csv file
     up_regulated_miRNA_targets.to_csv("all_up_reg_miRNA_targets_miRTarBase_TargetScan.tsv", sep='\t', index=False)
