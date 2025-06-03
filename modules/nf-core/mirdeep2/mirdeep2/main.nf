@@ -14,6 +14,8 @@ process MIRDEEP2_MIRDEEP2 {
 
     output:
     tuple val(meta), path("result*.{bed,csv,html}")    , emit: outputs
+    tuple val(meta), path("pdfs*")                     , emit: pdfs
+    tuple val(meta), path("expression_analyses*")      , emit: expression
     path "versions.yml"                                , emit: versions
 
     when:
@@ -37,6 +39,8 @@ process MIRDEEP2_MIRDEEP2 {
         $precursors \\
         $args
 
+    mv pdfs* pdfs_${prefix}
+    mv expression_analyses expression_analyses_${prefix}
     mv result_*.bed result_${prefix}.bed
     mv result_*.csv result_${prefix}.csv
     mv result_*.html result_${prefix}.html
@@ -52,6 +56,8 @@ process MIRDEEP2_MIRDEEP2 {
     def prefix = task.ext.prefix ?: "${meta.id}"
     def VERSION = '2.0.1'
     """
+    touch pdfs_${prefix}
+    touch expression_analyses_${prefix}
     touch result_${prefix}.html
     touch result_${prefix}.bed
     touch result_${prefix}.csv
