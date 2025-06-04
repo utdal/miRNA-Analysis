@@ -69,46 +69,110 @@ def main():
 
     # Concatenate all the dataframes in the list
     all_samples = pd.concat(novel_results_samples)
-    all_samples.to_csv('all_samples.csv', sep='\t')
-
-    # Create dataframe for the detections with similar hairpins and the ones with only one detection
-    similar_hairpins = pd.DataFrame(columns=all_samples.columns)
-    only_one_detection = pd.DataFrame(columns=all_samples.columns)
+    all_samples.to_csv('all_samples_novel_miRNAs.csv', sep='\t', index=False)
 
     # Set to keep track of the visited indices
     visited_indices = set()
 
-    # Iterate over the rows of the all_samples dataframe
+    # Temp arrays for memory efficiency
+    similar_hairpins_array = []
+    only_one_detection_array = []
+
+    ################################################
+    # SIMILAR HAIRPINS DETECTION with 90% overlap
+    ################################################
+    # Iterate over the rows of the dataframe to find similar hairpins
     for test_index,test_row in all_samples.iterrows():
         if test_index in visited_indices:
             continue
 
         has_sim = False
         for index,row in all_samples.iterrows():
-            if index != test_index and index not in visited_indices and sim_hairpin_test(test_row['consensus precursor sequence'], row['consensus precursor sequence']):
+            if index != test_index and index not in visited_indices and sim_hairpin_overlap(test_row['consensus precursor sequence'], row['consensus precursor sequence']):
                 # copy row into similar_hairpin + delete row
                 has_sim = True
-                similar_hairpins.loc[len(similar_hairpins)] = row
+                similar_hairpins_array.append(row)
                 visited_indices.add(index)
 
         if has_sim is True:
             # write test_row to the similarl_hairpin
-            similar_hairpins.loc[len(similar_hairpins)] = test_row
+            similar_hairpins_array.append(test_row)
             has_sim = False
         else:
             # write test_row to only_one
-            only_one_detection.loc[len(only_one_detection)] = test_row
+            only_one_detection_array.append(test_row)
 
-    similar_hairpins.to_csv('similar_hairpin_all_samples.csv', sep='\t')
+    similar_hairpins = pd.DataFrame(similar_hairpins_array, columns=all_samples.columns)
+    only_one_detection = pd.DataFrame(only_one_detection_array, columns=all_samples.columns)
 
-    only_one_detection.to_csv('only_one_novel_miRNA_detected_across_all_samples.csv', sep='\t')
+    similar_hairpins.to_csv('similarSort_hairpin_novel_miRNA.csv', sep='\t', index=False)
+    only_one_detection.to_csv('similarSort_only_one_novel_miRNA_detected.csv', sep='\t', index=False)
+
+    #########################################
+    # EXACT HAIRPIN AND MATURE SEQ MATCHES
+    #########################################
+
+    # Reset variables
+    similar_hairpins_array = []
+    only_one_detection_array = []
+    visited_indices = set()
+    # Iterate over the similar hairpins to find exact matches
+    for test_index,test_row in all_samples.iterrows():
+        if test_index in visited_indices:
+            continue
+
+        has_sim = False
+        for index,row in all_samples.iterrows():
+            if index != test_index and index not in visited_indices and same_hairpin_mature(test_row['consensus precursor sequence'], row['consensus precursor sequence'], test_row['consensus mature sequence'], row['consensus mature sequence']):
+                # copy row into similar_hairpin + delete row
+                has_sim = True
+                similar_hairpins_array.append(row)
+                visited_indices.add(index)
+
+        if has_sim is True:
+            # write test_row to the similarl_hairpin
+            similar_hairpins_array.append(test_row)
+            has_sim = False
+        else:
+            # write test_row to only_one
+            only_one_detection_array.append(test_row)
+
+    similar_hairpins = pd.DataFrame(similar_hairpins_array, columns=all_samples.columns)
+    only_one_detection = pd.DataFrame(only_one_detection_array, columns=all_samples.columns)
+    similar_hairpins.to_csv('exactSort_hairpin_mature_novel_miRNA.csv', sep='\t', index=False)
+    only_one_detection.to_csv('exactSort_only_one_novel_miRNA_detected.csv', sep='\t', index=False)
 
 
-def sim_hairpin_test(hairpin1, hairpin2):
-    if hairpin1 in hairpin2 or hairpin2 in hairpin1:
-            return True
-    else:
-        return False
+
+# Function of exact hairpin and mature seq matches
+def same_hairpin_mature(hairpin1, hairpin2, mature1, mature2):
+    return hairpin1 == hairpin2 and mature1 == mature2
+
+# Function for calculated ration of overlap between 2 seqs
+def overlap_ratio(seq1, seq2):
+    # Identify the longest common substring between seq1 and seq2.
+    # There are efficient algorithms for this (e.g., using dynamic programming),
+    # but here's a basic conceptual example.
+
+    max_overlap = 0
+    len1, len2 = len(seq1), len(seq2)
+    
+    # Check overlap with seq1 suffix and seq2 prefix
+    for i in range(1, min(len1, len2) + 1):
+        if seq1[-i:] == seq2[:i]:
+            max_overlap = max(max_overlap, i)
+    
+    # Check overlap with seq2 suffix and seq1 prefix
+    for i in range(1, min(len1, len2) + 1):
+        if seq2[-i:] == seq1[:i]:
+            max_overlap = max(max_overlap, i)
+    
+    # Return ratio based on the shorter sequence length
+    return max_overlap / min(len1, len2)
+
+# Function for returning similarity based on threshold overlap ratio
+def sim_hairpin_overlap(seq1, seq2, threshold=0.9):
+    return overlap_ratio(seq1, seq2) >= threshold
     
 if __name__ == "__main__":
     main()

@@ -7,11 +7,13 @@ process MERGEMIRDEEP2 {
     path(outputs)
 
     output:
-    path "similar_hairpin_all_samples.csv",                      emit: similar_hairpin_all_samples
-    path "only_one_novel_miRNA_detected_across_all_samples.csv", emit: only_one_novel_miRNA_detected_across_all_samples
-    path "all_samples.csv",                                      emit: all_samples
-    path "*.log",                                                emit: mergemirdeep2_log
-    path "versions.yml",                                         emit: versions
+    path "similarSort_hairpin_novel_miRNA.csv",           emit: similar_sort_hairpin
+    path "similarSort_only_one_novel_miRNA_detected.csv", emit: similar_sort_only_one_novel_miRNA_detected_across
+    path "exactSort_hairpin_mature_novel_miRNA.csv",      emit: exact_sort_novel_miRNAs
+    path "exactSort_only_one_novel_miRNA_detected.csv",   emit: exact_sort_only_one_novel_miRNA_detected
+    path "all_samples_novel_miRNAs.csv",                  emit: all_samples
+    path "*.log",                                         emit: mergemirdeep2_log
+    path "versions.yml",                                  emit: versions
 
     script:
     def min_mirdeep2_score = params.min_mirdeep2_score ?: 4.0
