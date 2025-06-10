@@ -1,6 +1,7 @@
 // Import Local Modules
 include { TARGETS_OF_MIRNA } from './../modules/local/targets_of_miRNA'
 include { INTERSECT_MIRNA_RNASEQ } from './../modules/local/intersect_miRNA_RNAseq'
+include { CLUSTERPROFILER } from './../modules/local/clusterProfiler'
 
 workflow TARGET_ANALYSIS {
 
@@ -25,6 +26,11 @@ workflow TARGET_ANALYSIS {
     )
     ch_versions = ch_versions.mix(INTERSECT_MIRNA_RNASEQ.out.versions.first())
 
+    CLUSTERPROFILER(
+        INTERSECT_MIRNA_RNASEQ.out.filtered_intersect_targets
+    )
+    ch_versions = ch_versions.mix(CLUSTERPROFILER.out.versions.first())
+    
 
     // TODO miRanda or TargetScan for miRDeep2 results
 
