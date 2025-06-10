@@ -13,7 +13,7 @@ process DESEQ2 {
     tuple val(meta2), path("*_basic_plots_*.pdf"), emit: basic_plots
     tuple val(meta2), path("*_R_sessionInfo.log"), emit: R_sessionInfo
     tuple val(meta2), path("*_DESeq2.log"),        emit: DESeq2_log
-    path "versions.yml",                                            emit: versions
+    path "versions.yml",                           emit: versions
 
     script:
     def baseDir = params.base_dir
