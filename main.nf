@@ -26,7 +26,8 @@ workflow {
 
     // TODO make optional
     TARGET_ANALYSIS(
-        params.bulk_rna_counts,
-        MIRNA_EXPRESSION.out.miRNA_DE
+        params.miRNA_DE,
+        params.bulk_rna_counts
     )
+    versions = versions.mix(TARGET_ANALYSIS.out.versions)
 }

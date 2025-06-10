@@ -6,8 +6,8 @@ include { CLUSTERPROFILER } from './../modules/local/clusterProfiler'
 workflow TARGET_ANALYSIS {
 
     take:
-    bulk_rna_counts
     miRNA_DE
+    bulk_rna_counts
 
     main:
     ch_versions = Channel.empty()
@@ -31,6 +31,8 @@ workflow TARGET_ANALYSIS {
     )
     ch_versions = ch_versions.mix(CLUSTERPROFILER.out.versions.first())
     
+    emit:
+    versions = ch_versions
 
     // TODO miRanda or TargetScan for miRDeep2 results
 
