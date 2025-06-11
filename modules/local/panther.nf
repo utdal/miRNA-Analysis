@@ -90,13 +90,19 @@ process PANTHER {
         echo "Performing analysis on up regulated genes for annotation data set: \${annot}"
         # Check if the up reglated file is empty
         if [[ -s "${targets_up}" && "\$skip_down" -eq 0 ]]; then
+            # change output file name for GO b/c : causes a problem
+            if [[ "\${annot}" == "GO:0008150" || "\${annot}" == "GO:0005575" || "\${annot}" == "GO:0003674" ]]; then
+                output_file_name=\$(echo "\${annot}" | tr ':' '_')
+            else
+                output_file_name="\${annot}"
+            fi
             curl -X POST 'https://pantherdb.org/services/oai/pantherdb/enrich/statenrich' \\
                 -H 'accept: application/json' \\
                 -H 'Content-Type: multipart/form-data' \\
                 -F 'organism=${organism}' \\
                 -F "annotDataSet=\${annot}" \\
                 -F 'correction=${correction}' \\
-                -F 'geneExp=@${targets_up};type=text/plain' > up_\${annot}_results.json
+                -F 'geneExp=@${targets_up};type=text/plain' > up_\${output_file_name}_results.json
         else
             echo "No up regulated miRNA target genes to perform analysis on."
         fi
@@ -106,13 +112,19 @@ process PANTHER {
         echo "Performing analysis on down regulated genes for annotation data set: \${annot}"
         # Check if the down regulated file is empty
         if [[ -s "${targets_down}" && "\$skip_down" -eq 0 ]]; then
+            # change output file name for GO b/c : causes a problem
+            if [[ "\${annot}" == "GO:0008150" || "\${annot}" == "GO:0005575" || "\${annot}" == "GO:0003674" ]]; then
+                output_file_name=\$(echo "\${annot}" | tr ':' '_')
+            else
+                output_file_name="\${annot}"
+            fi
             curl -X POST 'https://pantherdb.org/services/oai/pantherdb/enrich/statenrich' \\
                 -H 'accept: application/json' \\
                 -H 'Content-Type: multipart/form-data' \\
                 -F 'organism=${organism}' \\
                 -F "annotDataSet=\${annot}" \\
                 -F 'correction=${correction}' \\
-                -F 'geneExp=@${targets_down};type=text/plain' > down_\${annot}_results.json
+                -F 'geneExp=@${targets_down};type=text/plain' > down_\${output_file_name}_results.json
         else
             echo "No down regulated miRNA target genes to perform analysis on."
         fi
