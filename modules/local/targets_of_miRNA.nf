@@ -8,9 +8,9 @@ process TARGETS_OF_MIRNA {
 
     output:
     tuple path("*all_up_reg_miRNA_targets_miRTarBase_TargetScan.tsv"), path("*all_down_reg_miRNA_targets_miRTarBase_TargetScan.tsv"),  emit: miRNA_targets
-    tuple path("*up_regulated_miRNAs.tsv"), path("*down_regulated_miRNAs.tsv"), optional: true, emit: deseq2_output_split
-    path("*.log"),  emit: target_database_log
-    path "versions.yml",              emit: versions
+    tuple path("*up_regulated_miRNAs.tsv"), path("*down_regulated_miRNAs.tsv"),                                        optional: true, emit: deseq2_output_split
+    path("*.log"),                                                                                                                     emit: target_database_log
+    path "versions.yml",                                                                                                               emit: versions
 
     script:
     def hsa_miRTarBase_TargetScan_db = params.target_database

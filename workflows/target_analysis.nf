@@ -1,3 +1,7 @@
+//
+// miRNA Target Analysis Workflow
+//
+
 // Import Local Modules
 include { TARGETS_OF_MIRNA } from './../modules/local/targets_of_miRNA'
 include { INTERSECT_MIRNA_RNASEQ } from './../modules/local/intersect_miRNA_RNAseq'
@@ -19,7 +23,8 @@ workflow TARGET_ANALYSIS {
     ch_versions = ch_versions.mix(TARGETS_OF_MIRNA.out.versions.first())
 
     // Filter all the targets for only those that appear in the Bulk RNA-seq 
-    //      (aka only the ones that are expressed)
+    //      (aka only genes that are expressed in tissue)
+    // If no bulk_rna_counts is provided, then just return the unique targets
     INTERSECT_MIRNA_RNASEQ( 
         TARGETS_OF_MIRNA.out.miRNA_targets,
         bulk_rna_counts
@@ -30,23 +35,10 @@ workflow TARGET_ANALYSIS {
         INTERSECT_MIRNA_RNASEQ.out.filtered_intersect_targets
     )
     ch_versions = ch_versions.mix(CLUSTERPROFILER.out.versions.first())
+
+    // TODO miRanda or TargetScan for miRDeep2 results
     
     emit:
     versions = ch_versions
 
-    // TODO miRanda or TargetScan for miRDeep2 results
-
-
-
-    // Functional Analysis
-
-    // PANTHER API: https://pantherdb.org/services/openAPISpec.jsp
-    // PANTHER statistical enrichment using the Mann-Whitney U Test (Wilcoxon Rank-Sum Test).
-    // For each term in the specified annotation data set, the genes associated with that term 
-    //          are evaluated according to the likelihood that their numerical values were drawn 
-    //          randomly from the overall distribution of values. 
-    // In Linux sample curl command to invoke service is as follows: curl -X POST 'https://pantherdb.org/services/oai/pantherdb/enrich/statenrich' -H 'accept: application/json' -H 'Content-Type: multipart/form-data' -F 'organism=9606' -F 'annotDataSet=GO:0008150' -F 'correction=FDR' -F 'geneExp=@/path/to/two_column/tab/delimited/text_file.txt;type=text/plain' 
-    // It is recommended that response from previous web service request is received before sending
-    //           a new request. Failure to comply with this policy may result in the IP address 
-    //           being blocked from accessing PANTHER.
 }

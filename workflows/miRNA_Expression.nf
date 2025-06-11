@@ -1,9 +1,11 @@
 //
-// main workflow
+// miRNA Expression workflow
 //
 
 // Import Local Subworkflows
 include { FASTQC_CUTADAPT_FASTQC as PREPROCESSING} from './../subworkflows/local/preprocessing.nf'
+
+// Import nf-core subworkflows
 include { FASTQ_FIND_MIRNA_MIRDEEP2 } from './../subworkflows/nf-core/fastq_find_mirna_mirdeep2/main.nf'
 
 // Import Local Modules
@@ -42,7 +44,7 @@ workflow MIRNA_EXPRESSION {
     }
 
     if (skip_preprocessing != true) {
-        // preprocess: fastqc cutadapt fastqc
+        // preprocess: fastqc cutadapt univec_filtering fastqc
         PREPROCESSING (ch_samples)
         reads = PREPROCESSING.out.trimmed_reads
         ch_versions = ch_versions.mix(PREPROCESSING.out.versions.first())
@@ -50,13 +52,12 @@ workflow MIRNA_EXPRESSION {
         reads = ch_samples
     }
     
-
     // Download miRBase files
     MIRBASE_DOWNLOAD ()
     ch_versions = ch_versions.mix(MIRBASE_DOWNLOAD.out.versions.first())
 
     //
-    // miRDeep2
+    // Novel miRNAs: miRDeep2
     //
     if (skip_mirdeep2 != true) {
         // Make a channel for miRNA reference files
@@ -90,7 +91,9 @@ workflow MIRNA_EXPRESSION {
         ch_versions = ch_versions.mix(MERGEMIRDEEP2.out.versions.first())
     }
 
+    //
     // exceRpt
+    //
     EXCERPT (
         reads
     )
@@ -101,8 +104,9 @@ workflow MIRNA_EXPRESSION {
         all_excerpt_folders
     )
     
-
+    //
     // HTSeq-count then merge results
+    //
     HTSEQ_COUNT (
         EXCERPT.out.exceRpt_aligned_bam,
         MIRBASE_DOWNLOAD.out.miRNA_gff
@@ -123,7 +127,9 @@ workflow MIRNA_EXPRESSION {
         tuple(meta2, file(row.csv)) 
     }
 
-    // DESeq2
+    //
+    // Differntial Expression: DESeq2
+    //
     DESEQ2 (
         CONCAT_RAW_COUNTS.out.all_raw_counts,
         ch_meta_data
