@@ -17,7 +17,7 @@ process HTSEQ_COUNT{
 
     script:
     def args = task.ext.args ?: ''
-    def threads = params.htseq_threads
+    def threads = params.htseq_threads ?: 2
     """
     htseq-count \\
         -f bam \\

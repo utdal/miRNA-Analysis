@@ -14,7 +14,7 @@ process EXCERPT {
 
     script:
     base_dir = params.base_dir
-    align_threads = params.align_threads
+    align_threads = params.align_threads ?: 4
     """
     make -f ${base_dir}/bin/exceRpt_smallRNA \
         OUTPUT_DIR=${meta.id}_exceRpt \
