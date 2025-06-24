@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import sys
 import pandas as pd
 import numpy as np
 import requests
@@ -131,12 +132,15 @@ def main():
         logger.info("Non DESeq2 output file being processed")
         # Header expected to follow the format: miRNA   <up or down regulated>regulated
         miRNA_list = pd.read_csv(miRNA_list_file, sep='\t', header=0)
-        if len(miRNA_list.columns) == 1:
+        if "miRNA" in miRNA_list.columns and "regulated" in miRNA_list.columns:
             up_regulated = miRNA_list
             down_regulated = pd.DataFrame(columns=miRNA_list.columns)
-        else:
+        elif "miRNA" in miRNA_list.columns:
             up_regulated = miRNA_list[miRNA_list['regulated'] == 'up']
             down_regulated = miRNA_list[miRNA_list['regulated'] == 'down']
+        else:
+            logger.info("miRNA_DE file does not have the expected columns. Please fix file format.")
+            sys.exit(2)
     else:
         logger.info("Please provide a valid value (yes or no) for the deseq2_output argument.")
 
