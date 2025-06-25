@@ -34,6 +34,8 @@ conda install nextflow
 conda install singularity
 ```
 
+Download reference files at https://utdallas.box.com/s/gmues1f86df19ddr3rwg7rvich0q19um into the **assets** folder. Download http://homes.gersteinlab.org/people/rrk24/exceRpt/exceRptDB_v4_CORE.tgz from ([exceRpt Core Database](https://rkitchen.github.io/exceRpt/)) and decompress into the **assets** folder. 
+
 ## Running pipeline
 Go into the conf folder and open the user_sample.conf file. Configure parameters as needed. See Options section for more details.
 
