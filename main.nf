@@ -14,6 +14,7 @@ workflow {
 
         skip_preprocessing = params.skip_preprocessing ?: false
         skip_mirdeep2 = params.skip_mirdeep2 ?: false
+        skip_deseq2 = params.skip_deseq2 ?: false
 
         // Prep mirdeep2 inputs
         if (skip_mirdeep2 != true) {
@@ -28,6 +29,7 @@ workflow {
         MIRNA_EXPRESSION(
             skip_preprocessing,
             skip_mirdeep2,
+            skip_deseq2,
             genome_fasta,
             bowtie_index,
             params.samplesheet,

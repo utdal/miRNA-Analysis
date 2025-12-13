@@ -23,6 +23,7 @@ workflow MIRNA_EXPRESSION {
     take:
     skip_preprocessing
     skip_mirdeep2
+    skip_deseq2
     genome_fasta
     bowtie_index
     samplesheet
@@ -130,13 +131,14 @@ workflow MIRNA_EXPRESSION {
     //
     // Differntial Expression: DESeq2
     //
-    DESEQ2 (
-        CONCAT_RAW_COUNTS.out.all_raw_counts,
-        ch_meta_data
-    )
+    if(skip_deseq2 != true) {
+        DESEQ2 (
+            CONCAT_RAW_COUNTS.out.all_raw_counts,
+            ch_meta_data
+        )
+    }
 
     emit:
-    miRNA_DE = DESEQ2.out.miRNA_DE  // channel: [ val(meta2), path("*.tsv") ]
     versions = ch_versions
     
 }
