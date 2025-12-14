@@ -1,0 +1,5 @@
+,sex,treatment
+ctrl_1,male,no_ics
+ctrl_2,female,no_ics
+ics_1,male,yes_ics
+ics_2,female,yes_ics
