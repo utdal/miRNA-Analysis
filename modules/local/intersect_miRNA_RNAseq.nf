@@ -17,13 +17,15 @@ process INTERSECT_MIRNA_RNASEQ {
 
     script:
     def min_expression = params.min_expression ?: 0
+    def min_miRNA_target_mRNA = params.min_targeting_miRNA ?: 1
     """
 
     intersect_miRNA_targets_with_BulkRNAseq.py \
         --up_miRNA_targets ${up_regulated_miRNA_targets} \
         --down_miRNA_targets ${down_regulated_miRNA_targets} \
         --bulkRNAseq ${tissue_specific_genes} \
-        --min_expression ${min_expression}
+        --min_expression ${min_expression} \
+        --min_miRNA_target_mRNA ${min_miRNA_target_mRNA}
     
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":

@@ -47,7 +47,7 @@ def main():
         "--min_miRNA_target_mRNA",
         type=int,
         required=False,
-        default=5,
+        default=1,
         help="The minimum number of miRNA targeting a mRNA to be considered.",
     )
 
