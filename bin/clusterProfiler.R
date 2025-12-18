@@ -150,16 +150,22 @@ if (nrow(up_mirna) != 0) {
     CC_go_results_up <- symbols_list_to_mirna_list(CC_go_results_up, up_mirna)
     write.table(CC_go_results_up, "all_up_regulated_miRNA_enrichment/up_regulated_miRNA_GO_CC_results.tsv", sep = '\t', quote=FALSE, row.names = FALSE)
 
-    KEGG_results_up <- entrez_ids_to_symbol(KEGG_results_up, up_entrez_ids_no_na)
-    KEGG_results_up <- symbols_list_to_mirna_list(KEGG_results_up, up_mirna)
+    if(nrow(KEGG_results_up) > 0){
+        KEGG_results_up <- entrez_ids_to_symbol(KEGG_results_up, up_entrez_ids_no_na)
+        KEGG_results_up <- symbols_list_to_mirna_list(KEGG_results_up, up_mirna)
+    }
     write.table(KEGG_results_up, "all_up_regulated_miRNA_enrichment/up_regulated_miRNA_KEGG_results.tsv", sep = '\t', quote=FALSE, row.names = FALSE)
 
-    Wiki_results_up <- entrez_ids_to_symbol(Wiki_results_up, up_entrez_ids_no_na)
-    Wiki_results_up <- symbols_list_to_mirna_list(Wiki_results_up, up_mirna)
+    if(nrow(Wiki_results_up) > 0){
+        Wiki_results_up <- entrez_ids_to_symbol(Wiki_results_up, up_entrez_ids_no_na)
+        Wiki_results_up <- symbols_list_to_mirna_list(Wiki_results_up, up_mirna)
+    }
     write.table(Wiki_results_up, "all_up_regulated_miRNA_enrichment/up_regulated_miRNA_WikiPathways_results.tsv", sep = '\t', quote=FALSE, row.names = FALSE)
 
-    reactome_results_up <- entrez_ids_to_symbol(reactome_results_up, up_entrez_ids_no_na)
-    reactome_results_up <- symbols_list_to_mirna_list(reactome_results_up, up_mirna)
+    if(nrow(reactome_results_up) > 0){
+        reactome_results_up <- entrez_ids_to_symbol(reactome_results_up, up_entrez_ids_no_na)
+        reactome_results_up <- symbols_list_to_mirna_list(reactome_results_up, up_mirna)
+    }
     write.table(reactome_results_up, "all_up_regulated_miRNA_enrichment/up_regulated_miRNA_Reactome_results.tsv", sep = '\t', quote=FALSE, row.names = FALSE)
 
     log_info("Completed processing upregulated miRNA targets")
@@ -243,16 +249,22 @@ if (nrow(down_mirna) != 0) {
     CC_go_results_down <- symbols_list_to_mirna_list(CC_go_results_down, down_mirna)
     write.table(CC_go_results_down, "all_down_regulated_miRNA_enrichment/down_regulated_miRNA_GO_CC_results.tsv", sep = '\t', quote=FALSE, row.names = FALSE)
 
-    KEGG_results_down <- entrez_ids_to_symbol(KEGG_results_down, down_entrez_ids_no_na)
-    KEGG_results_down <- symbols_list_to_mirna_list(KEGG_results_down, down_mirna)
+    if(nrow(KEGG_results_down) > 0){
+        KEGG_results_down <- entrez_ids_to_symbol(KEGG_results_down, down_entrez_ids_no_na)
+        KEGG_results_down <- symbols_list_to_mirna_list(KEGG_results_down, down_mirna)
+    }
     write.table(KEGG_results_down, "all_down_regulated_miRNA_enrichment/down_regulated_miRNA_KEGG_results.tsv", sep = '\t', quote=FALSE, row.names = FALSE)
 
-    Wiki_results_down <- entrez_ids_to_symbol(Wiki_results_down, down_entrez_ids_no_na)
-    Wiki_results_down <- symbols_list_to_mirna_list(Wiki_results_down, down_mirna)
+    if(nrow(Wiki_results_down) > 0){
+        Wiki_results_down <- entrez_ids_to_symbol(Wiki_results_down, down_entrez_ids_no_na)
+        Wiki_results_down <- symbols_list_to_mirna_list(Wiki_results_down, down_mirna)
+    }
     write.table(Wiki_results_down, "all_down_regulated_miRNA_enrichment/down_regulated_miRNA_WikiPathways_results.tsv", sep = '\t', quote=FALSE, row.names = FALSE)
 
-    reactome_results_down <- entrez_ids_to_symbol(reactome_results_down, down_entrez_ids_no_na)
-    reactome_results_down <- symbols_list_to_mirna_list(reactome_results_down, down_mirna)
+    if(nrow(reactome_results_down) > 0){
+        reactome_results_down <- entrez_ids_to_symbol(reactome_results_down, down_entrez_ids_no_na)
+        reactome_results_down <- symbols_list_to_mirna_list(reactome_results_down, down_mirna)
+    }
     write.table(reactome_results_down, "all_down_regulated_miRNA_enrichment/down_regulated_miRNA_Reactome_results.tsv", sep = '\t', quote=FALSE, row.names = FALSE)
 
     log_info("Completed processing downregulated miRNA targets")
