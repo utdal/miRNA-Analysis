@@ -133,11 +133,11 @@ def main():
         # Header expected to follow the format: miRNA   <up or down regulated>regulated
         miRNA_list = pd.read_csv(miRNA_list_file, sep='\t', header=0)
         if "miRNA" in miRNA_list.columns and "regulated" in miRNA_list.columns:
-            up_regulated = miRNA_list
-            down_regulated = pd.DataFrame(columns=miRNA_list.columns)
-        elif "miRNA" in miRNA_list.columns:
             up_regulated = miRNA_list[miRNA_list['regulated'] == 'up']
             down_regulated = miRNA_list[miRNA_list['regulated'] == 'down']
+        elif "miRNA" in miRNA_list.columns:
+            up_regulated = miRNA_list
+            down_regulated = pd.DataFrame(columns=miRNA_list.columns)
         else:
             logger.info("miRNA_DE file does not have the expected columns. Please fix file format.")
             sys.exit(2)
@@ -169,11 +169,11 @@ def main():
                                                                     (down_regulated_miRNA_targets['Predicted relative KD'] <= max_predicted_KD)]
     else:
         up_regulated_miRNA_targets = up_regulated_miRNA_targets[(up_regulated_miRNA_targets['Experimental Evidence'] == 'weak') | 
-                                                                up_regulated_miRNA_targets['Experimental Evidence'] == 'strong' | 
+                                                                (up_regulated_miRNA_targets['Experimental Evidence'] == 'strong') | 
                                                                 (up_regulated_miRNA_targets['weighted context++ score percentile'] >= min_weighted_context_percentile) & 
                                                                 (up_regulated_miRNA_targets['Predicted relative KD'] <= max_predicted_KD)]
         down_regulated_miRNA_targets = down_regulated_miRNA_targets[(down_regulated_miRNA_targets['Experimental Evidence'] == 'weak') | 
-                                                                    down_regulated_miRNA_targets['Experimental Evidence'] == 'strong' | 
+                                                                    (down_regulated_miRNA_targets['Experimental Evidence'] == 'strong') | 
                                                                     (down_regulated_miRNA_targets['weighted context++ score percentile'] >= min_weighted_context_percentile) & 
                                                                     (down_regulated_miRNA_targets['Predicted relative KD'] <= max_predicted_KD)]
 
