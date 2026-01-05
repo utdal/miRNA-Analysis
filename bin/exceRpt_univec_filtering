@@ -8,7 +8,7 @@
 # DOI: 10.1016/j.cels.2019.03.004
 
 ## Paths:
-DATABASE_PATH         := $(BASE_DIR)/assets/exceRptDB_v4_CORE/DATABASE
+DATABASE_PATH         := $(BASE_DIR)/assets/DATABASE
 EXCERPT_TOOLS_EXE     := $(BASE_DIR)/bin/exceRpt_Tools.jar
 
 ## Define current time

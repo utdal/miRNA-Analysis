@@ -8,11 +8,11 @@
 # DOI: 10.1016/j.cels.2019.03.004
 
 ## Paths:
-DATABASE_PATH         := $(BASE_DIR)/assets/exceRptDB_v4_CORE/DATABASE
+DATABASE_PATH         := $(BASE_DIR)/assets/DATABASE
 EXCERPT_TOOLS_EXE     := $(BASE_DIR)/bin/exceRpt_Tools.jar
 
 ## Define current time
-ts := `/bin/date "+%Y-%m-%d--%H:%M:%S"`
+ts  := `/bin/date "+%Y-%m-%d--%H:%M:%S"`
 ONE := 1
 ## Define tool name for logging
 PIPELINE_NAME := exceRpt_smallRNA
@@ -21,7 +21,7 @@ PIPELINE_NAME := exceRpt_smallRNA
 ## 2) Choose the main organism for smallRNA / genome alignment (hsa + hg19, hsa + hg38, or mmu + mm10)
 ##
 MAIN_ORGANISM_GENOME_ID := hg38
-ENDOGENOUS_LIB_PRIORITY	  := miRNA,tRNA,piRNA,gencode,circRNA
+ENDOGENOUS_LIB_PRIORITY	:= miRNA,tRNA,piRNA,gencode,circRNA
 
 ##
 ## 4) Select whether pipeline is run locally, should be 'true' unless this is the Genboree.org implementation!
@@ -54,13 +54,13 @@ BOWTIE_SEED_LENGTH := $(MIN_READ_LENGTH)
 ##
 ## For sample quality control (QC)
 ##
-MIN_TRANSCRIPTOME_MAPPED := 100000
+MIN_TRANSCRIPTOME_MAPPED       := 100000
 MIN_GENOME_TRANSCRIPTOME_RATIO := 0.5
 
 ## Parameters to use for the bowtie mapping of calibrator oligos and rRNAs
 BOWTIE2_MAPPING_PARAMS_CALIBRATOR := -D 15 -R 2 -N $(STAR_outFilterMismatchNmax) -L $(BOWTIE_SEED_LENGTH) -i S,1,0
 
-SAMTOOLS_SORT_MEM 	:= 2G
+SAMTOOLS_SORT_MEM := 2G
 
 USEAGE := 
 ifeq ($(INPUT_FILE_ID),NULL)
