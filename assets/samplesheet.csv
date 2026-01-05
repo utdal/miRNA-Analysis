@@ -1,0 +1,5 @@
+sample_id,fastq
+ctrl_1,/path/to/miRNA-Analysis/assets/test_dataset/SRR26183456_no_ics_male.fastq.gz
+ctrl_2,/path/to/miRNA-Analysis/assets/test_dataset/SRR26183462_no_ics_female.fastq.gz
+ics_1,/path/to/miRNA-Analysis/assets/test_dataset/SRR26183457_ics_male.fastq.gz
+ics_2,/path/to/miRNA-Analysis/assets/test_dataset/SRR26183470_ics_female.fastq.gz

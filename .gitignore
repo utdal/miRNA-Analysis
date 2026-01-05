@@ -1,0 +1,9 @@
+.nextflow/
+.nextflow.*
+test/
+work/
+bin/*.fa
+assets/*.gz
+assets/*.csv
+additional_args.txt
+assets/exceRpt*

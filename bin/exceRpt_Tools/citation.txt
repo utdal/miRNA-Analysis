@@ -1,0 +1,10 @@
+Citation:
+Pipeline Authors:Rob Kitchen (@rkitchen) and @trgaleev
+File: exceRpt_smallRNA
+Source: https://github.com/rkitchen/exceRpt?tab=readme-ov-file
+Commit: 6df9a6af35a24c4aa7733c7e711c312339b5002f
+Download Date: Octobe 31, 2024
+This code is licensed under the GPL-3.0 License
+DOI: 10.1016/j.cels.2019.03.004 
+
+All processes labeled with exceRpt have code which origniates from this source.

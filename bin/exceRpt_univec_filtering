@@ -1,0 +1,60 @@
+# Citation
+# Pipeline Authors:Rob Kitchen (@rkitchen) and @trgaleev
+# File: exceRpt_smallRNA
+# Source: https://github.com/rkitchen/exceRpt?tab=readme-ov-file
+# Commit: 6df9a6af35a24c4aa7733c7e711c312339b5002f
+# Download Date: Octobe 31, 2024
+# This code is licensed under the GPL-3.0 License
+# DOI: 10.1016/j.cels.2019.03.004
+
+## Paths:
+DATABASE_PATH         := $(BASE_DIR)/assets/DATABASE
+EXCERPT_TOOLS_EXE     := $(BASE_DIR)/bin/exceRpt_Tools.jar
+
+## Define current time
+ts := `/bin/date "+%Y-%m-%d--%H:%M:%S"`
+## Define tool name for logging
+PIPELINE_NAME := exceRpt_univec_filtering
+STAR_alignEndsType				 := Local
+MIN_READ_LENGTH 				 := 16
+STAR_outFilterMatchNminOverLread := 0.9
+STAR_outFilterMismatchNmax 		 := 1
+STAR_outFilterMismatchNoverLmax  := 0.3
+
+
+##
+## STAR dynamic parameter string
+##
+STAR_ENDOGENOUS_DYNAMIC_PARAMS := --alignEndsType $(STAR_alignEndsType) --outFilterMatchNmin $(MIN_READ_LENGTH) --outFilterMatchNminOverLread $(STAR_outFilterMatchNminOverLread) --outFilterMismatchNmax $(STAR_outFilterMismatchNmax) --outFilterMismatchNoverLmax $(STAR_outFilterMismatchNoverLmax) 
+
+
+	
+FILE_TO_INPUT_TO_UNIVEC_ALIGNMENT := $(INPUT_FILE_PATH)
+
+
+
+##
+## STAR command to align reads to the UniVec contaminant sequence database
+##
+COMMAND_MAP_UNIVEC ?= STAR --runThreadN $(N_THREADS) --outFileNamePrefix $(OUTPUT_DIR)/filteringAlignments_UniVec_ --genomeDir $(DATABASE_PATH)/UniVec/STAR_INDEX_UniVec --readFilesIn $(FILE_TO_INPUT_TO_UNIVEC_ALIGNMENT) --outReadsUnmapped Fastx --parametersFiles $(DATABASE_PATH)/STAR_Parameters_Endogenous_smallRNA.in $(STAR_ENDOGENOUS_DYNAMIC_PARAMS) >> $(OUTPUT_DIR)/$(SAMPLE_ID).log 2>> $(OUTPUT_DIR)/$(SAMPLE_ID).err; \
+samtools view $(OUTPUT_DIR)/filteringAlignments_UniVec_Aligned.out.bam | awk '{print $$3}' | sort -k 2,2 2>> $(OUTPUT_DIR)/$(SAMPLE_ID).err | uniq --count > $(OUTPUT_DIR)/$(SAMPLE_ID).clipped.trimmed.filtered.uniVecContaminants.counts 2>> $(OUTPUT_DIR)/$(SAMPLE_ID).err; \
+samtools view $(OUTPUT_DIR)/filteringAlignments_UniVec_Aligned.out.bam | awk '{print $$1}' | sort 2>> $(OUTPUT_DIR)/$(SAMPLE_ID).err | uniq -c | wc -l > $(OUTPUT_DIR)/$(SAMPLE_ID).clipped.trimmed.filtered.uniVecContaminants.readCount 2>> $(OUTPUT_DIR)/$(SAMPLE_ID).err; \
+gzip -c $(OUTPUT_DIR)/filteringAlignments_UniVec_Unmapped.out.mate1 > $(OUTPUT_DIR)/$(SAMPLE_ID)_univec_filtered.fastq.gz; \
+rm $(OUTPUT_DIR)/filteringAlignments_UniVec_Unmapped.out.mate1
+
+
+
+##
+## MAP to external bowtie to UniVec sequences
+##
+$(OUTPUT_DIR)/$(SAMPLE_ID)_univec_filtered.fastq.gz: $(INPUT_FILE_PATH)
+	mkdir -p $(OUTPUT_DIR)
+	#
+	@echo -e "======================\n" >> $(OUTPUT_DIR)/$(SAMPLE_ID).log
+	@echo -e "$(ts) $(PIPELINE_NAME): Mapping reads to contaminant sequences in UniVec using STAR:\n" >> $(OUTPUT_DIR)/$(SAMPLE_ID).log
+	@echo -e "$(ts) $(PIPELINE_NAME): $(COMMAND_MAP_UNIVEC)\n" >> $(OUTPUT_DIR)/$(SAMPLE_ID).log
+	$(COMMAND_MAP_UNIVEC)
+	@echo -e "$(ts) $(PIPELINE_NAME): Finished mapping to the UniVec contaminant DB\n" >> $(OUTPUT_DIR)/$(SAMPLE_ID).log
+	## Count UniVec contaminant reads
+	cat $(OUTPUT_DIR)/$(SAMPLE_ID).clipped.trimmed.filtered.uniVecContaminants.readCount | awk '{print "UniVec_contaminants\t"$$1}' >> $(OUTPUT_DIR)/$(SAMPLE_ID).stats
+	

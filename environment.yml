@@ -1,0 +1,17 @@
+name: mirna
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  - bioconda::star=2.6.0c
+  - bioconda::java-jdk
+  - bioconda::fastx_toolkit
+  - bioconda::bowtie2
+  - bioconda::samtools
+  - conda-forge::r-base
+  - conda-forge::biopython
+  - conda-forge::requests
+  - conda-forge::pandas
+  - bioconda::htseq
+  - nextflow
+  - singularity
