@@ -40,9 +40,12 @@ workflow {
 
     // Only running target analysis workflow
     if (params.workflow.equals("target_analysis")) {
+
+        bulk_file = params.bulk_rna_counts ?: "NO_FILE_PROVIDED"
+
         TARGET_ANALYSIS(
             params.miRNA_DE,
-            params.bulk_rna_counts
+            bulk_file
         )
         versions = versions.mix(TARGET_ANALYSIS.out.versions)
     }
