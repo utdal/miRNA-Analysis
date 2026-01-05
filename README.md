@@ -34,7 +34,17 @@ conda install nextflow
 conda install singularity
 ```
 
-Download reference files at https://utdallas.box.com/s/gmues1f86df19ddr3rwg7rvich0q19um into the **assets** folder. Download http://homes.gersteinlab.org/people/rrk24/exceRpt/exceRptDB_v4_CORE.tgz from ([exceRpt Core Database](https://rkitchen.github.io/exceRpt/)) and decompress into the **assets** folder. 
+Download reference files at https://utdallas.box.com/s/gmues1f86df19ddr3rwg7rvich0q19um into the **assets** folder. 
+
+Download exceRpt Database ([exceRpt Core Database](https://rkitchen.github.io/exceRpt/)) as below and move into the **assets** folder. 
+
+```
+wget http://homes.gersteinlab.org/people/rrk24/exceRpt/exceRptDB_v4_CORE.tgz ## Folder is ~20 MB
+tar -xvzf exceRptDB_v4_CORE.tgz
+wget http://org.gersteinlab.excerpt.s3-website-us-east-1.amazonaws.com/exceRptDB_v4_hg38_lowmem.tgz ## Folder is ~32 GB
+tar -xvf exceRptDB_v4_hg38_lowmem.tgz
+mv hg38 DATABASE/
+```
 
 ## Running pipeline
 Go into the conf folder and open the user_sample.conf file. Configure parameters as needed. See Options section for more details.
@@ -52,14 +62,28 @@ Other optional commands you can add
 ```
 
 ## mirna_expression Options
+### samplesheet (required) = `/path/to/samplesheet.csv`
+File with samples for analysis. See miRNA-Analysis/assets/samplesheet.csv for test dataset and example of valid file format.
+
+### base_dir (required) = `/path/to/miRNA-Analysis`
+
 ### skip_preprocessing (optional) = `true or false`
 Default is false. When set to true, skips preprocessing steps: fastqc, cutadapt (trimming), cutadapt (trimming), univec filtering (exceRpt), fastqc. **See Trimming section below for information on changing trimming parameters. Must modify parameters!** 
 
 ### skip_mirdeep2 (optional) = `true or false`
 Default is false. When set to true, skips all miRDeep2 analysis.
 
+### skip_deseq2 (optional) = `true or false`
+Default is false. When set to true, skips DESeq2 analysis (differential expression)
+
 ### min_mirdeep2_score (optional) = `> 0`
 Default is 4.0. See miRDeep2 paper for more information on how the miRDeep2 score is calcualted.
+
+### align_threads (optional) = `> 0`
+Default is 4. Number of threads to use for STAR alignment in exceRpt.
+
+### htseq_threads (optional) = `> 0`
+Default is 2. Number of threads to use for HTSeq process.
 
 ### meta_data_files (required) = `/path/to/meta_data_file.csv`
 Must be a csv with the following format:
@@ -81,7 +105,9 @@ sample4,no,female
 sample5,no,female
 sample6,no,male
 ```
-Mistakes in formating will result in errors.
+Mistakes in formating will result in errors. See assets folder for examples with test dataset.
+
+**Note** DESeq2 automatically sets the reference group for comparisons based on alphabetical order. Please either change the name of the value from female to a_female if you want female to be the reference group or run DESeq2 analysis separately. 
 
 ### min_padj (optional) = `< 0`
 Minimum adjusted p-value. Default is 0.05. Applied for filtering significantly differentially expressed miRNAs. See DESeq2 paper for more information
@@ -109,7 +135,7 @@ hsa-miR-144-5p	down
 **Note** Headers with at least miRNA and/or regulated must be present in the files for options 2 and 3.
 
 ### deseq2_output (required) = `0 or 1`
-File type of miRNA_DE file. Default is 1, meaning miRNA_DE is a DESeq2 output file. 0 represents options 2 and 3 for miRNA_DE.
+File type of miRNA_DE file. Default is 1, meaning miRNA_DE is a DESeq2 output file. 0 represents miRNA_DE's options 2 and 3.
 
 ### bulk_rna_counts (optional) = `/path/to/bulk_rnaseq_counts.csv`
 
@@ -122,6 +148,9 @@ DICER1,1000,845.6,9239
 ### min_expression (optional) = `≥ 0`
 Default is 0. Minimum mean read count (expression) for a gene in bulk RNA-seq. Genes that do not pass this threshold will filtered out of the miRNA target gene list. 
 
+### min_targeting_miRNA (optional) = `≥ 1`
+Default is 1. The minimum number of differentially expressed miRNAs that target a given gene. Only genes targeted by the minimum will be included in gene enrichment analysis. For example, 
+
 ### experimental_evidence (optional) = `weak or strong`
 Default is set to weak experimental evidence from [miRTarBase 2025](https://awi.cuhk.edu.cn/~miRTarBase/miRTarBase_2025/php/index.php). See miRTarBase2025 paper for more information.
 
@@ -133,13 +162,16 @@ Default is 0.0. TargetScan v8.0's Kd value is the predicted relative dissociatio
 
 **Note** For computationally predicted targets, miRNA-RNA predictions were downloaded from [TargetScan v8.0](https://www.targetscan.org/cgi-bin/targetscan/data_download.vert80.cgi): Default predictions (conserved sites of conserved miRNA families): Predicted Targets context++ scores (updated 23 May 2022). 
 
+
 ## Trimming
 
 Trimming for smallRNA-seq depending on the sequencing method. You may either trim reads outside the pipeline and use the skip_preprocessing option or modify the miRNA-Analysis/conf/modules.config file as desired. There are two blocks: CUTADAPT_APDAPTER (runs first) and CUTADAPT_EXTRA. This pipeline uses cutadapt v4.6. See [cutadapt v4.6](https://cutadapt.readthedocs.io/en/v4.6/guide.html) documentation and modify parameters as needed.
 
 ## DESeq2
 
-For exact code details, see miRNA-Analysis/bin/deseq2.R. Differential expression analysis is conducted for each combination from the metadata. Beyond the basic DESeq2 workflow, log fold shrinkage is performed using the apeglm function. The differential expression analysis for each experimental combination, has the following format: "condition_testGroup_vs_referenceGroup." Condition will be a column from the metadata. See [DESeq2](https://bioconductor.org/packages/release/bioc/vignettes/DESeq2/inst/doc/DESeq2.html) documentation for more information. This pipeline uses DESeq2 v1.46.0.
+For code, see miRNA-Analysis/bin/deseq2.R. Differential expression analysis is conducted for each combination from the metadata. Beyond the basic DESeq2 workflow, log fold shrinkage is performed using the apeglm function. The differential expression analysis for each experimental combination, has the following format: "condition_testGroup_vs_referenceGroup." Condition will be a column name from the metadata. See [DESeq2](https://bioconductor.org/packages/release/bioc/vignettes/DESeq2/inst/doc/DESeq2.html) documentation for more information. This pipeline uses DESeq2 v1.46.0.
+
+**Note** DESeq2 automatically sets the reference group for comparisons based on alphabetical order. Please either change the name of the value from female to a_female if you want female to be the reference group or run DESeq2 analysis separately. 
 
 ## Credits
 This pipeline was created and developed by Sneha Arya Gummadi (@SnehaGummadi) under the guidance of Dr. Diana Tavares-Ferreira (@dianatavf) at The University of Texas at Dallas.
@@ -147,7 +179,7 @@ This pipeline was created and developed by Sneha Arya Gummadi (@SnehaGummadi) un
 ## Support
 For any problems/questions/concerns, leave an issue with the following information: 1. Command used to run pipeline. 2. Config file. 3. Error message. 
 
-**Note** Be sure to omit paths for protected paths.
+**Note** Be sure to censor paths for protection.
 
 ## Citations
 This pipeline uses code and infrastructure developed and maintained by the [nf-core](https://nf-co.re) community, reused here under the [MIT license](https://github.com/nf-core/tools/blob/master/LICENSE).
