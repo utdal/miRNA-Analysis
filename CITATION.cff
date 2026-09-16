@@ -1,0 +1,31 @@
+cff-version: 1.2.0
+message: "If you use this software or data in your research, please cite the published paper below."
+title: "miRNA-Analysis"
+version: "1.0"
+authors:
+  - family-names: "Gummadi"
+    given-names: "Sneha A."
+    orcid: "https://orcid.org/0009-0008-7437-3033"
+preferred-citation:
+  type: article
+  authors:
+    - family-names: "Gummadi"
+      given-names: "Sneha A."
+      orcid: "https://orcid.org/0009-0008-7437-3033"
+    - family-names: "Ju"
+      given-names: "Ryan R."
+    - family-names: "Pastor"
+      given-names: "Victoria"
+    - family-names: "Meyer"
+      given-names: "Eric C."
+    - family-names: "Rozen"
+      given-names: "Shai M."
+    - family-names: "Tavares-Ferreira"
+      given-names: "Diana"
+      orcid: "https://orcid.org/0000-0003-0986-3630"
+  title: "Small RNA sequencing of human sural nerves identifies widespread microRNA dysregulation and Schwann cell-localized miR-21-5p in advanced diabetic neuropathy"
+  journal: "Scientific Reports"
+  year: 2026
+  doi: "10.1038/s41598-026-64136-0"
+  url: "https://doi.org/10.1038/s41598-026-64136-0"
+  date-published: 2026-07-30
